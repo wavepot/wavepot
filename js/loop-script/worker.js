@@ -38,14 +38,15 @@ const worker = {
 
     if (context.firstSample != null) {
       context.n++ // first frame consumed
-      context.startIndex = 1
+      if (!context.startIndex) context.startIndex = 0
       if (context.output.length === 1) {
-        context.output[0][0] = toFinite(context.firstSample)
+        context.output[0][context.startIndex] = toFinite(context.firstSample)
       } else {
         for (const [channel, sample] of context.firstSample.entries()) {
-          context.output[channel][0] = toFinite(sample)
+          context.output[channel][context.startIndex] = toFinite(sample)
         }
       }
+      context.startIndex++
     }
 
     render(this.fn, context)

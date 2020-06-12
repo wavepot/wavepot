@@ -1,68 +1,81 @@
 import '../../setup.js'
-import * as dsp from '../../fixtures/dsp.js'
-import Clock from '../../../js/clock.js'
-import Metronome from '../../../js/metronome.js'
 import LoopScriptNode from '../../../js/loop-script/node.js'
-import LoopBuffer from '../../../js/loop-script/buffer.js'
 
-const dspRender = (fn, channels, length, start = 0, offset = 0) => {
-  const output = Array(channels).fill().map(() => new Float32Array(length))
-  for (let n = offset; n < length; n++) {
-    let sample = fn({ valueOf: () => (1 + start + n) / (16 / 4 / 4), n })
-    for (let channel = 0; channel < output.length; channel++) {
-      output[channel][n] = Array.isArray(sample) ? sample[channel] : sample
-    }
-  }
-  return output
-}
-
-describe("LoopScriptNode", () => {
-  let node, context, wavepot, expected_a, expected_b
+describe("LoopScriptNode.start()", () => {
+  let node, context, rendered
 
   beforeEach(() => {
-    expected_a = dspRender(dsp.sine, 1, 32, 0, 0)
-    expected_b = dspRender(dsp.anotherSine, 1, 32, 0, 0)
     context = new OfflineAudioContext({ numberOfChannels: 1, length: 32, sampleRate: 44100 })
-    wavepot = {}
-    wavepot.audioContext = context
-    wavepot.bpm = 2646000 // 4 samples per bar
-    wavepot.clock = new Clock(context).setBpm(wavepot.bpm)
-    wavepot.metronome = new Metronome(wavepot).start()
-    wavepot.getLoopBuffer = opts => {
-      return new LoopBuffer(opts)
-    }
-    node = new LoopScriptNode(wavepot, '/test/fixtures/dsp.js', { name: 'sine' })
+    node = new LoopScriptNode('/test/fixtures/dsp.js', { name: 'counter' })
+    node.connect(context.destination)
+    node.setBpm(2646000)
   })
 
-  it("should play buffer at next beat", async () => {
-    node.connect(context.destination)
+  it("should start buffer at next beat", async () => {
     node.start('beat')
     await new Promise(resolve => setTimeout(resolve, 100))
     const result = (await context.startRendering()).getChannelData(0)
-    const expected = new Float32Array(32)
-    expected.set(expected_a[0].slice(0,16), 1)
-    expected.set(expected_a[0].slice(0,16-1), 16+1)
+    const expected = [
+       0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      17,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+    ]
     expect(result).to.be.buffer(expected)
   })
 
-  it("should play buffer at next bar", async () => {
-    node.connect(context.destination)
+  it("should start buffer at next bar", async () => {
     node.start('bar')
     await new Promise(resolve => setTimeout(resolve, 100))
     const result = (await context.startRendering()).getChannelData(0)
-    const expected = new Float32Array(32)
-    expected.set(expected_a[0].slice(0,16), 4)
-    expected.set(expected_a[0].slice(0,16-4), 16+4)
+    const expected = [
+       0, 0, 0, 0,17,18,19,20,5,6,7,8,9,10,11,12,
+      13,14,15,16,17,18,19,20,5,6,7,8,9,10,11,12
+    ]
     expect(result).to.be.buffer(expected)
   })
 
-  it("should play buffer at next phrase", async () => {
-    node.connect(context.destination)
+  it("should start buffer at next phrase", async () => {
     node.start('phrase')
     await new Promise(resolve => setTimeout(resolve, 100))
     const result = (await context.startRendering()).getChannelData(0)
-    const expected = new Float32Array(32)
-    expected.set(expected_a[0].slice(0,16), 16)
+    const expected = [
+      0,0,0,0,0,0,0,0,0, 0, 0, 0, 0, 0, 0, 0,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+    ]
+    expect(result).to.be.buffer(expected)
+  })
+})
+
+describe("LoopScriptNode.stop()", () => {
+  let node, context, rendered
+
+  beforeEach(() => {
+    context = new OfflineAudioContext({ numberOfChannels: 1, length: 32, sampleRate: 44100 })
+    node = new LoopScriptNode('/test/fixtures/dsp.js', { name: 'counter' })
+    node.connect(context.destination)
+    node.setBpm(2646000)
+  })
+
+  it("should stop buffer at next bar", async () => {
+    node.start('beat')
+    node.stop('bar')
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const result = (await context.startRendering()).getChannelData(0)
+    const expected = [
+      0,2,3,4,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    ]
+    expect(result).to.be.buffer(expected)
+  })
+
+  it("should stop buffer at next phrase", async () => {
+    node.start('bar')
+    node.stop('phrase')
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const result = (await context.startRendering()).getChannelData(0)
+    const expected = [
+      0,0,0,0,17,18,19,20,5,6,7,8,9,10,11,12,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    ]
     expect(result).to.be.buffer(expected)
   })
 })

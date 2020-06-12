@@ -45,7 +45,10 @@ export default class Metronome extends EventTarget {
 
     createNext()
 
-    this.stop = () => { ended = true }
+    this.stop = () => {
+      ended = true
+      this.dispatchEvent(new CustomEvent('ended'))
+    }
 
     return this
   }

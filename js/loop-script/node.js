@@ -1,44 +1,94 @@
+import Metronome from '../metronome.js'
+import Clock from '../clock.js'
 import Context from './context.js'
+import getBuffer from './buffer-pool.js'
+
+const path = import.meta.url.slice(0, import.meta.url.lastIndexOf('/'))
 
 export default class LoopScriptNode {
-  constructor (wavepot, filename, method) {
-    const { lengths } = wavepot.clock
-    this.wavepot = wavepot
-    this.context = new Context({ filename, method, length: lengths.bar, lengths })
-    this.output = wavepot.audioContext.createGain()
-    this.worker = new Worker('/js/loop-script/worker.js', { type: 'module' })
+  constructor (filename, method) {
+    this.worker = new Worker(`${path}/worker.js`, { type: 'module' })
     this.worker.onmessage = ({ data }) => this['on' + data.type](data)
-    this.worker.onerror = console.dir
-    this.wavepot.metronome.addEventListener('bar', () => this.onbar())
-  }
-
-  createBuffer (barIndex) {
-    return this.wavepot.getLoopBuffer({
-      audioContext: this.wavepot.audioContext,
-      numberOfChannels: this.context.setup.channels ?? this.context.firstSample?.length ?? 1,
-      numberOfBars: this.context.setup.bars ?? 4,
-      sampleRate: this.context.setup.sampleRate ?? this.wavepot.audioContext.sampleRate,
-      barLength: this.wavepot.clock.n.bar
+    this.worker.onerror = error => {
+      console.error('LoopScriptNode: Worker failed')
+      console.dir(error)
+    }
+    this.context = new Context({
+      filename,
+      method
     })
   }
 
+  close () {
+    this.audioContext = null
+    this.worker.terminate()
+    this.worker = null
+    this.buffer = null
+    this.clock = null
+    if (this.metronome) this.metronome.stop()
+    this.metronome = null
+  }
+
+  createBuffer (barIndex) {
+    return getBuffer({
+      audioContext: this.audioContext,
+      numberOfChannels: this.context.setup.channels ?? this.context.firstSample?.length ?? 1,
+      numberOfBars: this.context.setup.bars ?? 4,
+      sampleRate: this.context.setup.sampleRate ?? this.audioContext.sampleRate,
+      barLength: this.context.length
+    })
+  }
+
+  setBpm (bpm) {
+    this.clock.setBpm(bpm)
+    this.context.lengths = this.clock.lengths
+    this.context.length = this.clock.lengths.bar
+    if (this.metronome) this.metronome.stop()
+    const listener = () => this.onbar()
+    this.metronome = new Metronome(this).start()
+    this.metronome.addEventListener('bar', listener)
+    this.metronome.addEventListener('ended', () => {
+      this.metronome.removeEventListener('bar', listener)
+    }, { once: true })
+    return this
+  }
+
   connect (destination) {
+    this.audioContext = destination.context
+    this.clock = new Clock(this.audioContext)
+    this.context.sampleRate = this.audioContext.sampleRate
+    this.output = this.audioContext.createGain()
     this.output.connect(destination)
+    return this
   }
 
   start (syncType) {
-    this.sync = this.wavepot.clock.sync() //this.context.meta?.renderDuration ?? 0.03)
     this.startBarIndex = 0
+    this.sync = this.clock.sync //syncAt(this.clock.current.time + this.context.meta?.renderDuration ?? 0.03)
     if (syncType === 'bar') {
-      this.startBarIndex = this.wavepot.clock.noteAt(this.wavepot.clock.current.time).bar // Math.floor(this.sync.bar / this.wavepot.clock.times.bar) % (this.context.setup.bars ?? 4)
+      this.startBarIndex = this.clock.positionAt(this.sync.bar).bar
+      this.context.n = this.clock.currentAt(this.sync.bar).bar * this.clock.lengths.bar
+    }
+    if (syncType === 'beat') {
+      this.beatOffset = this.clock.positionAt(this.sync.beat).beat
+      this.context.n = this.clock.currentAt(this.sync.beat).beat * this.clock.lengths.beat
     }
     this.buffer = this.createBuffer()
     this.buffer.setBarIndex(this.startBarIndex)
     this.buffer.connect(this.output)
     this.buffer.start(this.sync[syncType])
-    // TODO: if setup is taking too long(infinite loop?), terminate worker and discard everything
     this.context.output = this.buffer.currentBarArray
     this.worker.postMessage({ type: 'setup', context: this.context })
+    this.worker.timeout = setTimeout(() => {
+      console.error('LoopScriptNode: Worker timeout')
+      console.dir(this.context)
+      this.close()
+    }, 5000)
+  }
+
+  stop (syncType) {
+    this.buffer.stop(this.clock.sync[syncType])
+    this.buffer.addEventListener('ended', () => this.close())
   }
 
   render () {
@@ -53,6 +103,8 @@ export default class LoopScriptNode {
   }
 
   onsetup ({ context }) {
+    clearTimeout(this.worker.timeout)
+
     this.context.put(context)
 
     this.context.setup.handle = this.context.setup.handle || ('channels' in this.context.setup)

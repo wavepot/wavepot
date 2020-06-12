@@ -1,12 +1,15 @@
 import powerRange from '../lib/power-range.js'
 
-export default class LoopBuffer {
+export default class LoopBuffer extends EventTarget {
   constructor ({ audioContext, numberOfChannels, numberOfBars, sampleRate, barLength }) {
+    super()
+
     this.audioContext = audioContext
     this.numberOfChannels = numberOfChannels
     this.numberOfBars = numberOfBars
     this.sampleRate = sampleRate
     this.barLength = barLength
+
     this.audioBuffer = this.audioContext.createBuffer(
       numberOfChannels,
       barLength * numberOfBars,
@@ -60,10 +63,11 @@ export default class LoopBuffer {
     this.bufferSource.onended = () => {
       this.bufferSource.disconnect()
       this.reset()
-      this.onended()
+      this.dispatchEvent(new CustomEvent('ended'))
     }
     this.initialBarIndex = this.currentBarArray.barIndex
-    Object.assign(this.bufferSource, this.currentBarArray.loopPoints)
+    this.bufferSource.loopStart = this.currentBarArray.loopPoints.loopStart
+    this.bufferSource.loopEnd = this.currentBarArray.loopPoints.loopEnd
   }
 
   // after this call, currentBarArray is ready to be passed to the worker
