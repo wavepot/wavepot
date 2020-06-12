@@ -46,10 +46,14 @@ const worker = {
           context.output[channel][0] = toFinite(sample)
         }
       }
-      context.firstSample = null
     }
 
     render(this.fn, context)
+
+    if (context.firstSample) {
+      context.firstSample = null
+      context.startIndex = 0
+    }
     postMessage({ type: 'render', context })
   }
 }

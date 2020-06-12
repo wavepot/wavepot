@@ -1,23 +1,25 @@
+import Context from './context.js'
+
 export default class LoopScriptNode {
   constructor (wavepot, filename, method) {
     const { lengths } = wavepot.clock
     this.wavepot = wavepot
-    this.context = new Context({ filename, method, lengths })
+    this.context = new Context({ filename, method, length: lengths.bar, lengths })
     this.output = wavepot.audioContext.createGain()
-    this.worker = new Worker('./worker.js', { type: 'module' })
+    this.worker = new Worker('/js/loop-script/worker.js', { type: 'module' })
     this.worker.onmessage = ({ data }) => this['on' + data.type](data)
+    this.worker.onerror = console.dir
     this.wavepot.metronome.addEventListener('bar', () => this.onbar())
   }
 
   createBuffer (barIndex) {
-    this.buffer = this.wavepot.getLoopBuffer({
+    return this.wavepot.getLoopBuffer({
+      audioContext: this.wavepot.audioContext,
       numberOfChannels: this.context.setup.channels ?? this.context.firstSample?.length ?? 1,
       numberOfBars: this.context.setup.bars ?? 4,
-      sampleRate: this.context.setup.sampleRate ?? this.wavepot.audioContext.sampleRate
+      sampleRate: this.context.setup.sampleRate ?? this.wavepot.audioContext.sampleRate,
+      barLength: this.wavepot.clock.n.bar
     })
-    this.buffer.setBarIndex(barIndex)
-    this.buffer.connect(this.output)
-    return this.buffer
   }
 
   connect (destination) {
@@ -25,14 +27,17 @@ export default class LoopScriptNode {
   }
 
   start (syncType) {
-    this.sync = this.wavepot.clock.sync(this.context.meta?.renderDuration ?? 0.03)
+    this.sync = this.wavepot.clock.sync() //this.context.meta?.renderDuration ?? 0.03)
     this.startBarIndex = 0
     if (syncType === 'bar') {
-      this.startBarIndex = Math.floor(this.sync.bar / this.wavepot.clock.times.bar) % (this.context.setup.bars ?? 4)
+      this.startBarIndex = this.wavepot.clock.noteAt(this.wavepot.clock.current.time).bar // Math.floor(this.sync.bar / this.wavepot.clock.times.bar) % (this.context.setup.bars ?? 4)
     }
-    this.context.output = this.createBuffer(this.startBarIndex).currentBarArray
+    this.buffer = this.createBuffer()
+    this.buffer.setBarIndex(this.startBarIndex)
+    this.buffer.connect(this.output)
     this.buffer.start(this.sync[syncType])
     // TODO: if setup is taking too long(infinite loop?), terminate worker and discard everything
+    this.context.output = this.buffer.currentBarArray
     this.worker.postMessage({ type: 'setup', context: this.context })
   }
 
@@ -51,7 +56,7 @@ export default class LoopScriptNode {
     this.context.put(context)
 
     this.context.setup.handle = this.context.setup.handle || ('channels' in this.context.setup)
-    if (!this.context.setup.handle || !('firstSample' in this.context)) {
+    if (!this.context.setup.handle && !('firstSample' in this.context)) {
       this.worker.postMessage({ type: 'testFirstSample', context: this.context })
     } else {
       this.render()
@@ -67,6 +72,7 @@ export default class LoopScriptNode {
     // }
     // this.sync = this.wavepot.clock.sync()
     this.buffer.commitCurrentArray()
+    this.context.output = this.buffer.currentBarArray
     if (!this.buffer.isFull) {
       this.render()
     }

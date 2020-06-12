@@ -33,14 +33,23 @@ export default class Clock {
     const offset = this.offsetTime
     const real = this.audioContext.currentTime
     const time = real - offset
+    return { offset, real, time, ...this.currentAt(time) }
+  }
+
+  currentAt (time) {
+    const t = this.t
     const beat = Math.floor(time / t.beat)
     const bar = Math.floor(time / t.bar)
     const phrase = Math.floor(time / t.phrase)
-    return { offset, real, time, beat, bar, phrase }
+    return { beat, bar, phrase }
   }
 
   get note () {
-    const c = this.current
+    return this.noteAt()
+  }
+
+  noteAt (time) {
+    const c = time == null ? this.current : this.currentAt(time)
     const beat = Math.floor(c.beat % 16)
     const bar = Math.floor(c.bar % 4)
     const phrase = Math.floor(c.phrase % 4)
