@@ -36,9 +36,11 @@ export default class DynamicCache {
   }
 
   async put (filename, content, headers = this.headers) {
-    const req = new Request(`${this.path}/${filename}`, { method: 'GET', headers })
+    filename = `${this.path}/${filename}`
+    const req = new Request(filename, { method: 'GET', headers })
     const res = new Response(content, { status: 200, headers })
     const cache = await caches.open('dynamic-cache:' + this.namespace)
     await cache.put(req, res)
+    return filename
   }
 }

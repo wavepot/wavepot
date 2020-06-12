@@ -1,6 +1,6 @@
 import DynamicCache from '../../js/dynamic-cache.js'
 
-describe("DynamicCache.install()", () => {
+describe("await DynamicCache.install()", () => {
   let serviceWorker
 
   it("should install the service worker", async () => {
@@ -30,7 +30,7 @@ describe("new DynamicCache(namespace, headers)", () => {
   })
 })
 
-describe("cache.put(filename, contents)", () => {
+describe("await cache.put(filename, contents)", () => {
   let a, b
 
   before(async () => {
