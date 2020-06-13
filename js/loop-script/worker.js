@@ -1,6 +1,6 @@
 import toFinite from '../lib/to-finite.js'
-import Context from './context.js'
-import render from './render.js'
+import Context from '../dsp/context.js'
+import render from '../dsp/render.js'
 
 const worker = {
   fn: null,

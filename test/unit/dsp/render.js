@@ -1,7 +1,7 @@
 import '../../setup.js'
 import * as dsp from '../../fixtures/dsp.js'
-import Context from '../../../js/loop-script/context.js'
-import render from '../../../js/loop-script/render.js'
+import Context from '../../../js/dsp/context.js'
+import render from '../../../js/dsp/render.js'
 
 const factory = (channels = 1, length = 44100) => {
   const output = Array(channels).fill().map(() => new Float32Array(length))

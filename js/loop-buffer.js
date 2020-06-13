@@ -1,20 +1,14 @@
-import powerRange from '../lib/power-range.js'
+import powerRange from './lib/power-range.js'
 
 export default class LoopBuffer extends EventTarget {
-  constructor ({ audioContext, numberOfChannels, numberOfBars, sampleRate, barLength }) {
+  constructor ({ numberOfChannels, numberOfBars, sampleRate, barLength }) {
     super()
 
-    this.audioContext = audioContext
     this.numberOfChannels = numberOfChannels
     this.numberOfBars = numberOfBars
     this.sampleRate = sampleRate
     this.barLength = barLength
 
-    this.audioBuffer = this.audioContext.createBuffer(
-      numberOfChannels,
-      barLength * numberOfBars,
-      sampleRate
-    )
     this.sharedBuffer = Array(numberOfChannels).fill().map(() =>
       new SharedArrayBuffer(
         barLength * numberOfBars * Float32Array.BYTES_PER_ELEMENT
@@ -56,6 +50,14 @@ export default class LoopBuffer extends EventTarget {
   }
 
   connect (destination) {
+    this.context = this.audioContext = destination.context
+    if (!this.audioBuffer || this.audioBuffer.context !== this.context) {
+      this.audioBuffer = this.audioContext.createBuffer(
+        this.numberOfChannels,
+        this.barLength * this.numberOfBars,
+        this.sampleRate
+      )
+    }
     this.bufferSource = this.audioContext.createBufferSource()
     this.bufferSource.loop = true
     this.bufferSource.buffer = this.audioBuffer

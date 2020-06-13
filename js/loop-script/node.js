@@ -1,6 +1,5 @@
-import Metronome from '../metronome.js'
 import Clock from '../clock.js'
-import Context from './context.js'
+import Context from '../dsp/context.js'
 import getBuffer from './buffer-pool.js'
 
 const path = import.meta.url.slice(0, import.meta.url.lastIndexOf('/'))
@@ -24,9 +23,8 @@ export default class LoopScriptNode {
     this.worker.terminate()
     this.worker = null
     this.buffer = null
+    try { this.clock.stop() } catch {}
     this.clock = null
-    if (this.metronome) this.metronome.stop()
-    this.metronome = null
   }
 
   createBuffer (barIndex) {
@@ -40,22 +38,20 @@ export default class LoopScriptNode {
   }
 
   setBpm (bpm) {
-    this.clock.setBpm(bpm)
+    if (this.clock) try { this.clock.stop() } catch {}
+    this.clock = new Clock().connect(this.output).setBpm(bpm)
     this.context.lengths = this.clock.lengths
     this.context.length = this.clock.lengths.bar
-    if (this.metronome) this.metronome.stop()
     const listener = () => this.onbar()
-    this.metronome = new Metronome(this).start()
-    this.metronome.addEventListener('bar', listener)
-    this.metronome.addEventListener('ended', () => {
-      this.metronome.removeEventListener('bar', listener)
+    this.output.addEventListener('bar', listener)
+    this.output.addEventListener('clockended', () => {
+      this.output.removeEventListener('bar', listener)
     }, { once: true })
     return this
   }
 
   connect (destination, bpm) {
     this.audioContext = destination.context
-    this.clock = new Clock(this.audioContext)
     this.context.sampleRate = this.audioContext.sampleRate
     this.output = this.audioContext.createGain()
     this.output.connect(destination)

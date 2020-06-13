@@ -23,7 +23,7 @@ describe("new Clock(audioContext) times + lengths", function () {
     // for (let bpm = 1000; bpm > 1; bpm -= .1) {
     //   bpm = parseFloat(bpm.toFixed(1))
       it(`compute correct "times" for hz=${hz} bpm=${bpm}`, () => {
-        const clock = new Clock(audio).setBpm(bpm)
+        const clock = new Clock().connect(audio.destination).setBpm(bpm)
         const { t, n, s, bpm: _bpm } = clock
         expect(t.beat).to.be.closeTo(60 / _bpm, p)
         expect(t.bar).to.be.closeTo(60 / _bpm * 4, p)
@@ -31,7 +31,7 @@ describe("new Clock(audioContext) times + lengths", function () {
       })
 
       it(`compute correct "lengths" for hz=${hz} bpm=${bpm}`, () => {
-        const clock = new Clock(audio).setBpm(bpm)
+        const clock = new Clock().connect(audio.destination).setBpm(bpm)
         const { t, n, s } = clock
         expect(n.rate).to.equal(hz)
         expect(n.beat).to.be.closeTo(t.beat*hz, p)
@@ -45,7 +45,7 @@ describe("new Clock(audioContext) times + lengths", function () {
       })
 
       it(`compute correct "sync" for hz=${hz} bpm=${bpm}`, async () => {
-        const clock = new Clock(audio).setBpm(bpm).reset()
+        const clock = new Clock().connect(audio.destination).setBpm(bpm).reset()
         clock.reset(-(clock.t.bar * 3) - 0.0001)
         const { current, t, n, s } = clock
         const { time, offset } = current
@@ -56,7 +56,7 @@ describe("new Clock(audioContext) times + lengths", function () {
       })
 
       it(`compute correct "current" for hz=${hz} bpm=${bpm}`, () => {
-        const clock = new Clock(audio).setBpm(bpm).reset()
+        const clock = new Clock().connect(audio.destination).setBpm(bpm).reset()
         clock.reset(-(clock.t.phrase * 3 + clock.t.beat * 5) - 0.0001)
         const { currentTime, c, t, n, s } = clock
         expect(c.time).to.be.closeTo(currentTime, p)
@@ -66,7 +66,7 @@ describe("new Clock(audioContext) times + lengths", function () {
       })
 
       it(`compute correct "position" for hz=${hz} bpm=${bpm}`, () => {
-        const clock = new Clock(audio).setBpm(bpm).reset()
+        const clock = new Clock().connect(audio.destination).setBpm(bpm).reset()
         clock.reset(-(clock.t.phrase * 3 + clock.t.beat * 5) - 0.0001)
         const { current, p, t, n, s } = clock
         expect(p.beat).to.equal(5)
@@ -76,4 +76,55 @@ describe("new Clock(audioContext) times + lengths", function () {
     }
     it("should close audio", async () => audio.close())
   }
+})
+
+describe("Clock.start()", function () {
+  this.timeout(10000)
+  this.bail(true)
+
+  let audio
+  it("should create audio", () => {
+    audio = new AudioContext({ sampleRate: 44100 })
+  })
+
+  // const fixtureBpm = [2000, 1000, 150, 140, 130, 120, 110, 100]
+  const fixtureBpm = [2000, 100]
+
+  for (const bpm of fixtureBpm) {
+    let count = 2, bars = 2
+    while (count--) {
+      it(`should currectly run for ${bars} bars for bpm=${bpm}`, done => {
+
+        let eventCount = 0
+
+        let time
+        const clock = new Clock().connect(audio.destination).setBpm(bpm).reset()
+
+        let first
+        const listener = () => {
+          eventCount++
+
+          if (!first) {
+            first = clock.bar
+            time = performance.now()
+          }
+
+          if (clock.bar - first === bars) {
+            clock.stop()
+            audio.destination.removeEventListener('bar', listener)
+            const duration = (performance.now() - time) / 1000
+            // we adjust for gc delaying events
+            expect(eventCount).to.equal(bars + 1)
+            expect(duration).to.be.closeTo(clock.t.bar * bars, clock.t.beat * 0.8)
+            done()
+          }
+        }
+        audio.destination.addEventListener('bar', listener)
+
+        clock.start()
+      })
+    }
+  }
+
+  it("should close audio", async () => audio.close())
 })

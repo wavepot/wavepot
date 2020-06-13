@@ -1,6 +1,6 @@
 import '../../setup.js'
 import * as dsp from '../../fixtures/dsp.js'
-import Context from '../../../js/loop-script/context.js'
+import Context from '../../../js/dsp/context.js'
 
 const workerFactory = () => {
   const worker = new Worker('/js/loop-script/worker.js', { type: 'module' })

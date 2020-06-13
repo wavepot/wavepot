@@ -1,6 +1,6 @@
-import '../../setup.js'
-import * as dsp from '../../fixtures/dsp.js'
-import LoopBuffer from '../../../js/loop-script/buffer.js'
+import '../setup.js'
+import * as dsp from '../fixtures/dsp.js'
+import LoopBuffer from '../../js/loop-buffer.js'
 
 const dspRender = (fn, channels, length, start = 0) => {
   const output = Array(channels).fill().map(() => new Float32Array(length))
@@ -31,7 +31,6 @@ describe("LoopBuffer", () => {
     expected_b = dspRender(dsp.anotherSine, 1, 16, 0)
     context = new OfflineAudioContext({ numberOfChannels: 1, length: 16, sampleRate: 44100 })
     buffer = new LoopBuffer({
-      audioContext: context,
       numberOfChannels: 1,
       numberOfBars: 4,
       sampleRate: 44100,
@@ -40,7 +39,6 @@ describe("LoopBuffer", () => {
   })
 
   it("should play buffer", async () => {
-    buffer.setBarIndex(0)
     buffer.connect(context.destination)
     buffer.start()
     dspRenderToBuffer(dsp.sine, buffer.currentBarArray, buffer.currentBarArray.byteOffset)
@@ -58,7 +56,6 @@ describe("LoopBuffer", () => {
   })
 
   it("should loop buffer", async () => {
-    buffer.setBarIndex(0)
     buffer.connect(context.destination)
     buffer.start()
     dspRenderToBuffer(dsp.sine, buffer.currentBarArray, buffer.currentBarArray.byteOffset)
@@ -85,7 +82,6 @@ describe("LoopBuffer", () => {
   })
 
   it("should loop properly with 1 bar", async () => {
-    buffer.setBarIndex(0)
     buffer.connect(context.destination)
     buffer.start()
     buffer.currentBarArray[0].set([1,2,3,4])
@@ -96,7 +92,6 @@ describe("LoopBuffer", () => {
   })
 
   it("should loop properly with 2 bars", async () => {
-    buffer.setBarIndex(0)
     buffer.connect(context.destination)
     buffer.start()
     buffer.currentBarArray[0].set([1,2,3,4])
@@ -109,7 +104,6 @@ describe("LoopBuffer", () => {
   })
 
   it("should loop properly with 3 bars", async () => {
-    buffer.setBarIndex(0)
     buffer.connect(context.destination)
     buffer.start()
     buffer.currentBarArray[0].set([1,2,3,4])
@@ -154,5 +148,4 @@ describe("LoopBuffer", () => {
     const result = (await context.startRendering()).getChannelData(0)
     expect(result).to.be.buffer([13,14,15,16,1,2,3,4,5,6,7,8,9,10,11,12])
   })
-
 })
