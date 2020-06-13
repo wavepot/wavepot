@@ -53,31 +53,28 @@ export default class LoopScriptNode {
     return this
   }
 
-  connect (destination) {
+  connect (destination, bpm) {
     this.audioContext = destination.context
     this.clock = new Clock(this.audioContext)
     this.context.sampleRate = this.audioContext.sampleRate
     this.output = this.audioContext.createGain()
     this.output.connect(destination)
+    if (bpm) this.setBpm(bpm)
     return this
   }
 
   start (syncType) {
-    this.startBarIndex = 0
-    this.sync = this.clock.sync //syncAt(this.clock.current.time + this.context.meta?.renderDuration ?? 0.03)
-    if (syncType === 'bar') {
-      this.startBarIndex = this.clock.positionAt(this.sync.bar).bar
-      this.context.n = this.clock.currentAt(this.sync.bar).bar * this.clock.lengths.bar
-    }
-    if (syncType === 'beat') {
-      this.beatOffset = this.clock.positionAt(this.sync.beat).beat
-      this.context.n = this.clock.currentAt(this.sync.beat).beat * this.clock.lengths.beat
-    }
+    const syncTime = this.clock.sync[syncType] //syncAt(this.clock.current.time + this.context.meta?.renderDuration ?? 0.03)
+    const syncFrame = this.clock.currentAt(syncTime)[syncType] * this.clock.lengths[syncType]
     this.buffer = this.createBuffer()
-    this.buffer.setBarIndex(this.startBarIndex)
     this.buffer.connect(this.output)
-    this.buffer.start(this.sync[syncType])
+    this.buffer.start(syncTime)
+    this.context.n = syncFrame
     this.context.output = this.buffer.currentBarArray
+    // TODO: setup/test can run on keyup so the node ready for render on "save"
+    // we can also render syncType="bar" in the background and commit the node
+    // on user save so it's already rendered and the right bar will play.
+    // Worst case we loop like this if we only have bar 1: 0000 1234 1234 5678
     this.worker.postMessage({ type: 'setup', context: this.context })
     this.worker.timeout = setTimeout(() => {
       console.error('LoopScriptNode: Worker timeout')
@@ -87,7 +84,7 @@ export default class LoopScriptNode {
   }
 
   stop (syncType) {
-    this.buffer.stop(this.clock.sync[syncType])
+    this.buffer.stop(this.clock.sync[syncType]) // syncAt
     this.buffer.addEventListener('ended', () => this.close())
   }
 
@@ -104,9 +101,8 @@ export default class LoopScriptNode {
 
   onsetup ({ context }) {
     clearTimeout(this.worker.timeout)
-
     this.context.put(context)
-
+    // TODO: separate these two operations and handle it with a state machine instead of heuristics
     this.context.setup.handle = this.context.setup.handle || ('channels' in this.context.setup)
     if (!this.context.setup.handle && !('firstSample' in this.context)) {
       this.worker.postMessage({ type: 'testFirstSample', context: this.context })

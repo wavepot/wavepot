@@ -65,7 +65,12 @@ export default class LoopBuffer extends EventTarget {
       this.reset()
       this.dispatchEvent(new CustomEvent('ended'))
     }
-    this.initialBarIndex = this.currentBarArray.barIndex
+    if (this.currentBarIndex === -1) {
+      this.setBarIndex(0)
+    }
+    if (this.initialBarIndex === -1) {
+      this.initialBarIndex = this.currentBarArray.barIndex
+    }
     this.bufferSource.loopStart = this.currentBarArray.loopPoints.loopStart
     this.bufferSource.loopEnd = this.currentBarArray.loopPoints.loopEnd
   }

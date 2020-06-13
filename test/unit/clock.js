@@ -8,7 +8,7 @@ const fixtures = {
   // bpm: [179, 149, 139, 128, 120, 100, 1000]
 }
 
-const p = 0.002
+const p = 0.003
 
 describe("new Clock(audioContext) times + lengths", function () {
   this.bail(true)
@@ -65,7 +65,7 @@ describe("new Clock(audioContext) times + lengths", function () {
         expect(c.phrase).to.equal(3)
       })
 
-      it(`compute correct "note" for hz=${hz} bpm=${bpm}`, () => {
+      it(`compute correct "position" for hz=${hz} bpm=${bpm}`, () => {
         const clock = new Clock(audio).setBpm(bpm).reset()
         clock.reset(-(clock.t.phrase * 3 + clock.t.beat * 5) - 0.0001)
         const { current, p, t, n, s } = clock
