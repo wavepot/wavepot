@@ -59,10 +59,13 @@ export default class LoopScriptNode {
     return this
   }
 
-  start (syncType) {
-    const syncTime = this.clock.sync[syncType] //syncAt(this.clock.current.time + this.context.meta?.renderDuration ?? 0.03)
+  start (syncType, ahead = 0) {
+    // TODO: add meta.renderDuration to the mix for more accuracy
+    const syncTime = this.clock.syncAt(
+      this.clock.times[syncType] * ahead
+    )[syncType]
     const syncFrame = this.clock.currentAt(syncTime)[syncType] * this.clock.lengths[syncType]
-    this.buffer = this.createBuffer()
+    this.buffer = this.createBuffer() // TODO: don't createbuffer when we need to reuse
     this.buffer.connect(this.output)
     this.buffer.start(syncTime)
     this.context.n = syncFrame
