@@ -135,6 +135,7 @@ describe("LoopBuffer", () => {
   it("should loop properly at index 1", async () => {
     buffer.setBarIndex(1)
     buffer.connect(context.destination)
+    buffer.createBufferSource()
     buffer.currentBarArray[0].set([1,2,3,4])
     buffer.commitCurrentArray()
     buffer.currentBarArray[0].set([5,6,7,8])

@@ -42,7 +42,9 @@ export default class LoopBuffer extends EventTarget {
   }
 
   start (time) {
-    this.createBufferSource()
+    if (!this.bufferSource) {
+      this.createBufferSource()
+    }
     this.bufferSource.start(time)
   }
 

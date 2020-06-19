@@ -24,11 +24,11 @@ class Recorder extends AudioWorkletProcessor {
 
     ++this.i
 
-    if (this.i % 9 === 0) {
+    if (this.i % (9*2) === 0) {
       this.port.postMessage(this.result)
     }
 
-    if (this.i === 32*9) {
+    if (this.i === 32*9*2) {
       this.port.postMessage(null)
       return false
     }

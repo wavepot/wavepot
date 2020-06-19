@@ -1,7 +1,9 @@
 import '../../setup.js'
 import LoopScriptNode from '../../../js/loop-script/node.js'
 
-describe("start + pause", () => {
+describe("start + pause", function () {
+  this.timeout(5000)
+
   let node, context, recorder, record, rendered, initSource
 
   before(async () => {
@@ -20,11 +22,11 @@ describe("start + pause", () => {
       }
     })
     node.connect(recorder)
-    node.setBpm(2296.875) // 1152 samples/beat
+    node.setBpm(1148.4375) // 2304 samples/beat
     node.clock.reset(-0.000001)
   })
 
-  afterEach(async () => {
+  afterEach(() => {
     node.close()
     recorder.disconnect()
   })
@@ -32,7 +34,6 @@ describe("start + pause", () => {
   it("should start bar 0, pause bar 1", async () => {
     node.start('bar', 0)
     node.pause('bar', 1)
-    recorder.connect(context.destination)
     const result = await record()
     const expected = [
       0,0,0,0, 1,1,1,1, 0,0,0,0, 0,0,0,0,
@@ -44,7 +45,6 @@ describe("start + pause", () => {
   it("should start bar 0, pause bar 2", async () => {
     node.start('bar', 0)
     node.pause('bar', 2)
-    recorder.connect(context.destination)
     const result = await record()
     const expected = [
       0,0,0,0, 1,1,1,1, 1,1,1,1, 0,0,0,0,
@@ -56,7 +56,6 @@ describe("start + pause", () => {
   it("should start bar 1, pause bar 2", async () => {
     node.start('bar', 1)
     node.pause('bar', 2)
-    recorder.connect(context.destination)
     const result = await record()
     const expected = [
       0,0,0,0, 0,0,0,0, 1,1,1,1, 0,0,0,0,
@@ -68,7 +67,6 @@ describe("start + pause", () => {
   it("should start bar 2, pause bar 5", async () => {
     node.start('bar', 2)
     node.pause('bar', 5)
-    recorder.connect(context.destination)
     const result = await record()
     const expected = [
       0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,1,
@@ -89,7 +87,9 @@ describe("start + pause", () => {
   })
 })
 
-describe("start + pause + start", () => {
+describe("start + pause + start", function () {
+  this.timeout(5000)
+
   let node, context, recorder, record, rendered, initSource
 
   before(async () => {
@@ -108,11 +108,11 @@ describe("start + pause + start", () => {
       }
     })
     node.connect(recorder)
-    node.setBpm(2296.875) // 1152 samples/beat
+    node.setBpm(1148.4375) // 2304 samples/beat
     node.clock.reset(-0.000001)
   })
 
-  afterEach(async () => {
+  afterEach(() => {
     node.close()
     recorder.disconnect()
   })
@@ -122,12 +122,12 @@ describe("start + pause + start", () => {
     node.pause('bar', 2, () => node.start('bar'))
     const result = await record()
     const expected = [
-      0,0,0,0, 5,6,7,8, 1,2,3,4, 0,0,0,0,
+      0,0,0,0, 1,2,3,4, 5,6,7,8, 0,0,0,0,
       // TODO: starts at 5, because paused at 4
       // but it isn't the right phase in the phrase
       // do we want to keep pause position
       // or should we always sync to phase?
-      5,6,7,8, 1,2,3,4, 5,6,7,8, 1,2,3,4
+      1,2,3,4, 5,6,7,8, 1,2,3,4, 5,6,7,8
     ]
     expect(result).to.be.buffer(expected)
   })
@@ -137,8 +137,8 @@ describe("start + pause + start", () => {
     node.pause('bar', 2, () => node.start('bar', 1))
     const result = await record()
     const expected = [
-      0,0,0,0, 5,6,7,8, 1,2,3,4, 0,0,0,0,
-      0,0,0,0, 5,6,7,8, 1,2,3,4, 5,6,7,8
+      0,0,0,0, 1,2,3,4, 5,6,7,8, 0,0,0,0,
+      0,0,0,0, 1,2,3,4, 5,6,7,8, 1,2,3,4
     ]
     expect(result).to.be.buffer(expected)
   })
@@ -148,8 +148,8 @@ describe("start + pause + start", () => {
     node.pause('bar', 2, () => node.start('bar'))
     const result = await record()
     const expected = [
-      0,0,0,0, 0,0,0,0, 1,2,3,4, 0,0,0,0,
-      1,2,3,4, 5,6,7,8, 1,2,3,4, 5,6,7,8
+      0,0,0,0, 0,0,0,0, 5,6,7,8, 0,0,0,0,
+      5,6,7,8, 1,2,3,4, 5,6,7,8, 1,2,3,4
     ]
     expect(result).to.be.buffer(expected)
   })
@@ -159,8 +159,8 @@ describe("start + pause + start", () => {
     node.pause('bar', 2, () => node.start('bar', 1))
     const result = await record()
     const expected = [
-      0,0,0,0, 0,0,0,0, 1,2,3,4, 0,0,0,0,
-      0,0,0,0, 1,2,3,4, 5,6,7,8, 1,2,3,4
+      0,0,0,0, 0,0,0,0, 5,6,7,8, 0,0,0,0,
+      0,0,0,0, 5,6,7,8, 1,2,3,4, 5,6,7,8
     ]
     expect(result).to.be.buffer(expected)
   })

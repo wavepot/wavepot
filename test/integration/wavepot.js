@@ -1,7 +1,7 @@
 import '../setup.js'
 import Wavepot from '../../js/wavepot.js'
 
-describe("new Wavepot()", () => {
+xdescribe("new Wavepot()", () => {
   it("should create a new Wavepot session with defaults", () => {
     const wavepot = new Wavepot()
     expect(wavepot).to.be.an.instanceof(Wavepot)
@@ -10,7 +10,7 @@ describe("new Wavepot()", () => {
   })
 })
 
-describe("new Wavepot({ audioContext })", () => {
+xdescribe("new Wavepot({ audioContext })", () => {
   it("should create a new Wavepot session using given audioContext", () => {
     const context = new OfflineAudioContext({ numberOfChannels: 1, length: 44100, sampleRate: 44100 })
     const wavepot = new Wavepot({ audioContext: context })
@@ -19,7 +19,7 @@ describe("new Wavepot({ audioContext })", () => {
   })
 })
 
-describe("wavepot.play(script)", () => {
+xdescribe("wavepot.play(script)", () => {
   let wavepot, context
 
   beforeEach(() => {

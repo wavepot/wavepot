@@ -1,7 +1,7 @@
-import Context from './dsp-context.js'
+import Context from './dsp/context.js'
 import DynamicCache from './dynamic-cache.js'
 import LoopBuffer from './loop-buffer.js'
-import Metronome from './metronome.js'
+import Clock from './clock.js'
 import Pool from './lib/pool.js'
 
 const DEFAULT_OPTIONS = {
@@ -15,7 +15,6 @@ export default class Wavepot {
     this.pools = {}
     this.clock = new Clock(this)
     this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/json' })
-    this.metronome = new Metronome(this).start()
   }
 
   getLoopBuffer (opts) {

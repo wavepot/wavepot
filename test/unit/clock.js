@@ -60,18 +60,18 @@ describe("new Clock(audioContext) times + lengths", function () {
         clock.reset(-(clock.t.phrase * 3 + clock.t.beat * 5) - 0.0001)
         const { currentTime, c, t, n, s } = clock
         expect(c.time).to.be.closeTo(currentTime, p)
-        expect(c.beat).to.equal(3 * 4 * 4 + 5)
-        expect(c.bar).to.equal(3 * 4 + 1)
-        expect(c.phrase).to.equal(3)
+        expect(c.beat).to.equal(3 * 4 * 4 + 6)
+        expect(c.bar).to.equal(3 * 4 + 2)
+        expect(c.phrase).to.equal(4)
       })
 
       it(`compute correct "position" for hz=${hz} bpm=${bpm}`, () => {
         const clock = new Clock().connect(audio.destination).setBpm(bpm).reset()
         clock.reset(-(clock.t.phrase * 3 + clock.t.beat * 5) - 0.0001)
         const { current, p, t, n, s } = clock
-        expect(p.beat).to.equal(5)
-        expect(p.bar).to.equal(1)
-        expect(p.phrase).to.equal(3)
+        expect(p.beat).to.equal(6)
+        expect(p.bar).to.equal(2)
+        expect(p.phrase).to.equal(0)
       })
     }
     it("should close audio", async () => audio.close())

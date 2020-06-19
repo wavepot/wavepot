@@ -100,9 +100,9 @@ export default class Clock {
 
   currentAt (time) {
     const t = this.t
-    const beat = Math.floor(time / t.beat)
-    const bar = Math.floor(time / t.bar)
-    const phrase = Math.floor(time / t.phrase)
+    const beat = Math.ceil(time / t.beat)
+    const bar = Math.ceil(time / t.bar)
+    const phrase = Math.ceil(time / t.phrase)
     return { beat, bar, phrase }
   }
 
