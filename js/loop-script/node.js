@@ -60,13 +60,17 @@ export default class LoopScriptNode {
   }
 
   start (syncType, ahead = 0) {
+    if (!this.buffer) {
+      this.buffer = this.createBuffer() // TODO: don't createbuffer when we need to reuse
+      this.buffer.connect(this.output)
+    // this.clock.reset()
+    }
     // TODO: add meta.renderDuration to the mix for more accuracy
+    this.clock.start()
     const syncTime = this.clock.syncAt(
-      this.clock.times[syncType] * ahead
+      this.clock.c.time + this.clock.times[syncType] * ahead
     )[syncType]
     const syncFrame = this.clock.currentAt(syncTime)[syncType] * this.clock.lengths[syncType]
-    this.buffer = this.createBuffer() // TODO: don't createbuffer when we need to reuse
-    this.buffer.connect(this.output)
     this.buffer.start(syncTime)
     this.context.n = syncFrame
     this.context.output = this.buffer.currentBarArray
@@ -74,20 +78,37 @@ export default class LoopScriptNode {
     // we can also render syncType="bar" in the background and commit the node
     // on user save so it's already rendered and the right bar will play.
     // Worst case we loop like this if we only have bar 1: 0000 1234 1234 5678
-    this.worker.postMessage({ type: 'setup', context: this.context })
-    this.worker.timeout = setTimeout(() => {
-      console.error('LoopScriptNode: Worker timeout')
-      console.dir(this.context)
-      this.close()
-    }, 5000)
+    if (!this.context.meta.hasSetup) {
+      this.worker.postMessage({ type: 'setup', context: this.context })
+      this.worker.timeout = setTimeout(() => {
+        console.error('LoopScriptNode: Worker timeout')
+        console.dir(this.context)
+        this.close()
+      }, 5000)
+    }
+    return syncTime
   }
 
   stop (syncType, ahead = 0) {
-    const syncTime = this.clock.syncAt(
-      this.clock.times[syncType] * ahead
-    )[syncType]
+    let syncTime = syncType
+    if (typeof syncType === 'string') {
+      syncTime = this.clock.syncAt(
+        this.clock.c.time + this.clock.times[syncType] * ahead
+      )[syncType]
+    }
+    this.buffer.addEventListener('ended', () => this.close(), { once: true })
     this.buffer.stop(syncTime)
-    this.buffer.addEventListener('ended', () => this.close())
+  }
+
+  pause (syncType, ahead = 0, cb) {
+    let syncTime = syncType
+    if (typeof syncType === 'string') {
+      syncTime = this.clock.syncAt(
+        this.clock.c.time + this.clock.times[syncType] * ahead
+      )[syncType]
+    }
+    this.buffer.addEventListener('paused', () => this.clock.stop(), { once: true })
+    this.buffer.pause(syncTime, cb)
   }
 
   render () {
@@ -96,7 +117,7 @@ export default class LoopScriptNode {
   }
 
   onbar () {
-    if (this.buffer.isFull && !this.pending) {
+    if (this.buffer?.isFull && !this.pending) {
       this.render()
     }
   }
@@ -109,6 +130,7 @@ export default class LoopScriptNode {
     if (!this.context.setup.handle && !('firstSample' in this.context)) {
       this.worker.postMessage({ type: 'testFirstSample', context: this.context })
     } else {
+      this.context.meta.hasSetup = true
       this.render()
     }
   }

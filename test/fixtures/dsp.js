@@ -16,3 +16,7 @@ export const broken = ({ n }) => [NaN,Infinity,-Infinity][n % 3]
 
 const counterMap = new Float32Array(Array(32).fill().map((_, i) => i + 1))
 export const counter = ({ n }) => counterMap[n % 32]
+
+export const ones = () => 1
+
+export const counter2 = ({ n }) => counterMap[Math.floor(n/(32*9*4)) % 8]

@@ -42,14 +42,48 @@ export default class LoopBuffer extends EventTarget {
   }
 
   start (time) {
+    this.createBufferSource()
     this.bufferSource.start(time)
   }
 
   stop (time) {
+    this.bufferSource.onended = () => {
+      this.bufferSource.disconnect()
+      this.reset()
+      this.dispatchEvent(new CustomEvent('ended'))
+    }
     this.bufferSource.stop(time)
   }
 
+  pause (time, cb) {
+    this.bufferSource.onended = () => {
+      this.bufferSource.disconnect()
+      this.createBufferSource()
+      this.dispatchEvent(new CustomEvent('paused'))
+      if (cb) cb()
+    }
+    this.bufferSource.stop(time)
+  }
+
+  createBufferSource () {
+    this.bufferSource = this.audioContext.createBufferSource()
+    this.bufferSource.loop = true
+    this.bufferSource.buffer = this.audioBuffer
+    this.bufferSource.connect(this.destination)
+    if (this.currentBarIndex === -1) {
+      this.setBarIndex(0)
+    }
+    if (this.initialBarIndex === -1) {
+      this.initialBarIndex = this.currentBarArray.barIndex
+    } else {
+      this.setBarIndex(this.initialBarIndex)
+    }
+    this.loopStart = this.bufferSource.loopStart = this.loopStart ?? this.currentBarArray.loopPoints.loopStart
+    this.loopEnd = this.bufferSource.loopEnd = this.loopEnd ?? this.currentBarArray.loopPoints.loopEnd
+  }
+
   connect (destination) {
+    this.destination = destination
     this.context = this.audioContext = destination.context
     if (!this.audioBuffer || this.audioBuffer.context !== this.context) {
       this.audioBuffer = this.audioContext.createBuffer(
@@ -58,23 +92,6 @@ export default class LoopBuffer extends EventTarget {
         this.sampleRate
       )
     }
-    this.bufferSource = this.audioContext.createBufferSource()
-    this.bufferSource.loop = true
-    this.bufferSource.buffer = this.audioBuffer
-    this.bufferSource.connect(destination)
-    this.bufferSource.onended = () => {
-      this.bufferSource.disconnect()
-      this.reset()
-      this.dispatchEvent(new CustomEvent('ended'))
-    }
-    if (this.currentBarIndex === -1) {
-      this.setBarIndex(0)
-    }
-    if (this.initialBarIndex === -1) {
-      this.initialBarIndex = this.currentBarArray.barIndex
-    }
-    this.bufferSource.loopStart = this.currentBarArray.loopPoints.loopStart
-    this.bufferSource.loopEnd = this.currentBarArray.loopPoints.loopEnd
   }
 
   // after this call, currentBarArray is ready to be passed to the worker
@@ -91,8 +108,8 @@ export default class LoopBuffer extends EventTarget {
     // if we haven't done a full circle, advance loop range to the highest power of 2
     if (!this.isFull) {
       const indexRange = powerRange([this.initialBarIndex, this.currentBarIndex], this.barArrays.length)
-      this.bufferSource.loopStart = this.barArrays[indexRange[0]].loopPoints.loopStart
-      this.bufferSource.loopEnd = this.barArrays[indexRange[1]].loopPoints.loopEnd
+      this.loopStart = this.bufferSource.loopStart = this.barArrays[indexRange[0]].loopPoints.loopStart
+      this.loopEnd = this.bufferSource.loopEnd = this.barArrays[indexRange[1]].loopPoints.loopEnd
       this.written++
     }
     // advance bar to next bar index
