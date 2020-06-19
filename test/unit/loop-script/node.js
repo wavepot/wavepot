@@ -111,6 +111,30 @@ describe("LoopScriptNode.stop()", () => {
     expect(result).to.be.buffer(expected)
   })
 
+  it('should start "beat" stop buffer after 1 "bar"', async () => {
+    node.start('beat')
+    node.stop('bar', 1)
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const result = (await context.startRendering()).getChannelData(0)
+    const expected = [
+      0,2,3,4, 5,6,7,8, 0,0,0,0, 0,0,0,0,
+      0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+    ]
+    expect(result).to.be.buffer(expected)
+  })
+
+  it('should start "beat" stop buffer after 2 "bars"', async () => {
+    node.start('beat')
+    node.stop('bar', 2)
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const result = (await context.startRendering()).getChannelData(0)
+    const expected = [
+      0,2,3,4, 5,6,7,8, 9,10,11,12, 0,0,0,0,
+      0,0,0,0, 0,0,0,0, 0,0,0,0,    0,0,0,0,
+    ]
+    expect(result).to.be.buffer(expected)
+  })
+
   it('should start "beat" stop buffer at next "phrase"', async () => {
     node.start('beat')
     node.stop('phrase')
@@ -131,6 +155,18 @@ describe("LoopScriptNode.stop()", () => {
     const expected = [
       0,0,0,0, 5,6,7,8, 9,10,11,12, 13,14,15,16,
       0,0,0,0, 0,0,0,0, 0,0,0,0,    0,0,0,0,
+    ]
+    expect(result).to.be.buffer(expected)
+  })
+
+  it('should start "bar" stop buffer after 1 "bar"', async () => {
+    node.start('bar')
+    node.stop('bar', 1)
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const result = (await context.startRendering()).getChannelData(0)
+    const expected = [
+      0,0,0,0, 5,6,7,8, 0,0,0,0, 0,0,0,0,
+      0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
     ]
     expect(result).to.be.buffer(expected)
   })

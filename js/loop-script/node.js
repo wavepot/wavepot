@@ -82,8 +82,11 @@ export default class LoopScriptNode {
     }, 5000)
   }
 
-  stop (syncType) {
-    this.buffer.stop(this.clock.sync[syncType]) // syncAt
+  stop (syncType, ahead = 0) {
+    const syncTime = this.clock.syncAt(
+      this.clock.times[syncType] * ahead
+    )[syncType]
+    this.buffer.stop(syncTime)
     this.buffer.addEventListener('ended', () => this.close())
   }
 
