@@ -11,7 +11,7 @@ export default class Wavepot {
   constructor (opts = {}) {
     Object.assign(this, DEFAULT_OPTIONS, opts)
     this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/json' })
-    this.sequencer = Sequencer(opts.el)
+    this.sequencer = Sequencer(opts.el, localStorage)
     this.sequencer.addEventListener('change', ({ detail: editor }) => {
       console.log('changed:', editor)
     })
