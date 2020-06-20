@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+
+<head>
+<title>wavepot</title>
+<link rel="stylesheet" href="https://repos.localhost:6060/wavepot/sequencer/wavepot.css">
+</head>
+
+<body>
+<!-- <div id="begin"><button>BEGIN</button></div> -->
+<div id="container"></div>
+<script type="importmap">
+{
+  "imports": {
+    "sequencer": "https://repos.localhost:6060/wavepot/sequencer/js/sequencer.js",
+    "primrose": "https://repos.localhost:6060/wavepot/sequencer/vendor/primrose/js/package/index.js"
+  }
+}
+</script>
+<script type="module">
+window.DEBUG = true
+
+const debug = window.debug = {}
+
+import Wavepot from './js/wavepot.js'
+
+const wavepot = debug.wavepot = new Wavepot({
+  el: container,
+  bpm: 125
+})
+</script>
+</body>
+
+</html>
