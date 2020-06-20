@@ -1,4 +1,5 @@
 import Sequencer from 'sequencer'
+import Clock from './clock.js'
 import DynamicCache from './dynamic-cache.js'
 import LoopScriptNode from './loop-script/node.js'
 import singleGesture from './lib/single-gesture.js'
@@ -7,13 +8,28 @@ const DEFAULT_OPTIONS = {
   bpm: 120
 }
 
+const readFilenameFromCode = code => {
+  code = code.trim()
+  if (code[0] === '`') {
+    const nextBackquoteIndex = code.indexOf('`', 1)
+    const filename = code
+      .slice(1, nextBackquoteIndex)
+      .toLowerCase()
+      .replace(/[^a-z0-9-_./]{1,}/gm, '-')
+    return filename
+  }
+}
+
 export default class Wavepot {
   constructor (opts = {}) {
     Object.assign(this, DEFAULT_OPTIONS, opts)
     this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/json' })
+    this.clock = new Clock()
+    this.onbar = this.onbar.bind(this)
     this.sequencer = Sequencer(opts.el, localStorage)
     this.sequencer.addEventListener('change', ({ detail: editor }) => {
       console.log('changed:', editor)
+      saveEditor(editor)
     })
     singleGesture(() => {
       console.log('audio start', this)
@@ -21,7 +37,37 @@ export default class Wavepot {
         numberOfChannels: 2,
         sampleRate: 44100
       })
+      this.context.destination.addEventListener('bar', this.onbar)
+      this.clock.connect(this.context.destination, this.bpm)
+      this.clock.start()
     })
+    this.playingPosition = -1
+  }
+
+  onbar () {
+    const grid = this.sequencer.grid
+    const sortedSquares = grid
+      .getAudibleSquares()
+      .map(([pos]) => grid.hashToPos(pos))
+      .sort((a, b) => a.x > b.x ? 1 : a.x < b.x ? -1 : 0)
+
+    const leftMost = sortedSquares[0].x
+    const rightMost = sortedSquares.pop().x
+
+    this.playingPosition++
+
+    if (this.playingPosition > rightMost || this.playingPosition < leftMost) {
+      this.playingPosition = leftMost
+    }
+
+    this.sequencer.highlightColumn(this.playingPosition)
+  }
+
+  async saveEditor (editor) {
+    const code = editor.instance.value
+    const filename = readFilenameFromCode(code)
+    await this.cache.put(filename, code)
+    console.log('saved:', filename)
   }
 }
 //   getLoopBuffer (opts) {
