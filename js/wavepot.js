@@ -3,6 +3,7 @@ import Clock from './clock.js'
 import DynamicCache from './dynamic-cache.js'
 import LoopScriptNode from './loop-script/node.js'
 import singleGesture from './lib/single-gesture.js'
+import readTracks from './read-tracks.js'
 
 const DEFAULT_OPTIONS = {
   bpm: 120
@@ -20,16 +21,19 @@ const readFilenameFromCode = code => {
   }
 }
 
+DynamicCache.install()
+
 export default class Wavepot {
   constructor (opts = {}) {
     Object.assign(this, DEFAULT_OPTIONS, opts)
-    this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/json' })
+    this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/javascript' })
+    this.nodes = new Map
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
     this.sequencer = Sequencer(opts.el, localStorage)
     this.sequencer.addEventListener('change', ({ detail: editor }) => {
       console.log('changed:', editor)
-      saveEditor(editor)
+      this.saveEditor(editor)
     })
     singleGesture(() => {
       console.log('audio start', this)
@@ -45,29 +49,73 @@ export default class Wavepot {
   }
 
   onbar () {
-    const grid = this.sequencer.grid
-    const sortedSquares = grid
-      .getAudibleSquares()
+    this.advancePlaybackPosition()
+    this.scheduleNextNodes()
+  }
+
+  async scheduleNextNodes () {
+    const nodes = await Promise.all([...new Map(
+      this.getNextPlaybackSquares()
+        .map(([_, editor]) => [editor.id, editor])
+      )]
+      .map(([id, editor]) => this.getNode(editor)))
+    console.log('got nodes', nodes)
+    nodes.forEach(node => {
+      node.start('bar')
+      node.pause('bar', 1)
+    })
+  }
+
+  async getNode (editor) {
+    let node = this.nodes.get(editor.id)
+    if (node) return node
+
+    const filename = await this.saveEditor(editor)
+    const methods = await readTracks(filename)
+    console.log('got methods', methods)
+    node = new LoopScriptNode(filename, methods.default)
+    node.connect(this.audioContext.destination)
+    node.setBpm(this.clock.bpm)
+    this.nodes.set(editor.id, node)
+    return node
+  }
+
+  getPlaybackRange () {
+    const { grid } = this.sequencer
+    const sortedSquares = grid.getAudibleSquares()
       .map(([pos]) => grid.hashToPos(pos))
       .sort((a, b) => a.x > b.x ? 1 : a.x < b.x ? -1 : 0)
-
+    if (!sortedSquares.length) return [-1,-1]
     const leftMost = sortedSquares[0].x
     const rightMost = sortedSquares.pop().x
+    return [leftMost, rightMost]
+  }
 
-    this.playingPosition++
-
-    if (this.playingPosition > rightMost || this.playingPosition < leftMost) {
-      this.playingPosition = leftMost
+  getNextPlaybackPosition () {
+    const [leftMost, rightMost] = this.getPlaybackRange()
+    let playingPosition = this.playingPosition + 1
+    if (playingPosition > rightMost || playingPosition < leftMost) {
+      playingPosition = leftMost
     }
+    return playingPosition
+  }
 
+  advancePlaybackPosition () {
+    this.playingPosition = this.getNextPlaybackPosition()
     this.sequencer.highlightColumn(this.playingPosition)
+  }
+
+  getNextPlaybackSquares () {
+    const x = this.getNextPlaybackPosition()
+    const { grid } = this.sequencer
+    return grid.getAudibleSquares()
+      .filter(([pos]) => grid.hashToPos(pos).x === x)
   }
 
   async saveEditor (editor) {
     const code = editor.instance.value
     const filename = readFilenameFromCode(code)
-    await this.cache.put(filename, code)
-    console.log('saved:', filename)
+    return await this.cache.put(filename, code)
   }
 }
 //   getLoopBuffer (opts) {

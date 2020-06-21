@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/softclip",
+  "_id": "softclip@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/softclip",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "softclip@github:opendsp/softclip",
+    "name": "softclip",
+    "escapedName": "softclip",
+    "rawSpec": "github:opendsp/softclip",
+    "saveSpec": "github:opendsp/softclip",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/softclip#4c3261d2775392f56da717f33e6fc1fe69eb9e11",
+  "_spec": "softclip@github:opendsp/softclip",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/softclip/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "softclip",
+  "homepage": "https://github.com/opendsp/softclip#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "softclip",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/softclip.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/envelope",
+  "_id": "envelope@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/envelope",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "envelope@github:opendsp/envelope",
+    "name": "envelope",
+    "escapedName": "envelope",
+    "rawSpec": "github:opendsp/envelope",
+    "saveSpec": "github:opendsp/envelope",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/envelope#82bef9af5b9867bdca9eed0067abaaf62523e0a3",
+  "_spec": "envelope@github:opendsp/envelope",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/envelope/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "envelope",
+  "homepage": "https://github.com/opendsp/envelope#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "envelope",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/envelope.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

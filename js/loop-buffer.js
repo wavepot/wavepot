@@ -42,29 +42,31 @@ export default class LoopBuffer extends EventTarget {
   }
 
   start (time) {
-    if (!this.bufferSource) {
+    // if (!this.bufferSource) {
       this.createBufferSource()
-    }
+    // }
     this.bufferSource.start(time)
   }
 
   stop (time) {
-    this.bufferSource.onended = () => {
-      this.bufferSource.disconnect()
+    const { bufferSource } = this
+    bufferSource.onended = () => {
+      bufferSource.disconnect()
       this.reset()
       this.dispatchEvent(new CustomEvent('ended'))
     }
-    this.bufferSource.stop(time)
+    bufferSource.stop(time)
   }
 
   pause (time, cb) {
-    this.bufferSource.onended = () => {
-      this.bufferSource.disconnect()
-      this.createBufferSource()
+    const { bufferSource } = this
+    bufferSource.onended = () => {
+      bufferSource.disconnect()
+      // this.createBufferSource()
       this.dispatchEvent(new CustomEvent('paused'))
       if (cb) cb()
     }
-    this.bufferSource.stop(time)
+    bufferSource.stop(time)
   }
 
   createBufferSource () {
