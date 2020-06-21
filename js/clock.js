@@ -1,6 +1,7 @@
 export default class Clock {
   constructor () {
     this.offsetTime = 0
+    this.started = false
   }
 
   connect (destination, bpm) {
@@ -13,6 +14,8 @@ export default class Clock {
   get bar () { return this.current.bar }
 
   start () {
+    if (this.started) return
+    this.started = true
     let ended = false
     let initial = true
     let prevSync
@@ -52,7 +55,8 @@ export default class Clock {
 
     this.stop = () => {
       ended = true
-      this.stop = Object.getPrototypeOf(this).stop //???
+      this.started = false
+      // this.stop = Object.getPrototypeOf(this).stop //???
       this.destination.dispatchEvent(new CustomEvent('clockended'))
     }
 

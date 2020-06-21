@@ -26,31 +26,94 @@ DynamicCache.install()
 export default class Wavepot {
   constructor (opts = {}) {
     Object.assign(this, DEFAULT_OPTIONS, opts)
+    this.el = opts.el
     this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/javascript' })
     this.nodes = new Map
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
-    this.sequencer = Sequencer(opts.el, localStorage)
-    this.sequencer.addEventListener('change', ({ detail: editor }) => {
-      console.log('changed:', editor)
-      this.saveEditor(editor)
-    })
-    singleGesture(() => {
-      console.log('audio start', this)
-      this.context = this.audioContext = new AudioContext({
-        numberOfChannels: 2,
-        sampleRate: 44100
-      })
-      this.context.destination.addEventListener('bar', this.onbar)
-      this.clock.connect(this.context.destination, this.bpm)
-      this.clock.start()
-    })
+    singleGesture(() => this.start())
+    this.createSequencer(localStorage)
     this.playingPosition = -1
+  }
+
+  createSequencer (storage) {
+    this.sequencer = Sequencer(this.el, storage)
+    this.sequencer.addEventListener('change', ({ detail: editor }) => {
+      // this.saveEditor(editor)
+    })
+    this.sequencer.addEventListener('export', ({ detail: fullState }) => {
+      const filename = `wavepot-${new Date().toJSON().split('.')[0].replace(/[^0-9]/g, '-')}.json`
+      const file = new File([fullState], filename, { type: 'application/json' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(file)
+      a.download = filename
+      a.click()
+    })
+    this.sequencer.addEventListener('import', () => {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.json'
+      input.onchange = e => {
+        const file = e.target.files[0]
+        const reader = new FileReader()
+        reader.readAsText(file, 'utf-8')
+        reader.onload = e => {
+          const fullState = JSON.parse(e.target.result)
+          for (const [key, value] of Object.entries(fullState)) {
+            localStorage.setItem(key, value)
+          }
+          // const proxyStorage = {
+          //   getItem (key) {
+          //     return fullState[key] ?? localStorage.getItem(key)
+          //   },
+          //   setItem (key, value) {
+          //     return localStorage.setItem(key, value)
+          //   }
+          // }
+          this.sequencer.destroy()
+          this.createSequencer(localStorage)
+        }
+      }
+      input.click()
+    })
+    this.sequencer.addEventListener('save', ({ detail: editor }) => {
+      console.log('saving:', editor)
+      this.updateNode(editor)
+    })
+    this.sequencer.addEventListener('play', () => {
+      this.start()
+      if (!this.clock.started) {
+        this.clock.start()
+        this.scheduleNextNodes()
+      } else {
+        this.clock.stop()
+        for (const node of this.nodes.values()) {
+          node.pause(0)
+        }
+      }
+    })
+    this.sequencer.addEventListener('pause', () => {
+      this.clock.stop()
+      for (const node of this.nodes.values()) {
+        node.pause(0)
+      }
+    })
   }
 
   onbar () {
     this.advancePlaybackPosition()
     this.scheduleNextNodes()
+  }
+
+  start () {
+    if (this.context) return
+    console.log('audio start', this)
+    this.context = this.audioContext = new AudioContext({
+      numberOfChannels: 2,
+      sampleRate: 44100
+    })
+    this.context.destination.addEventListener('bar', this.onbar)
+    this.clock.connect(this.context.destination, this.bpm)
   }
 
   async scheduleNextNodes () {
@@ -59,7 +122,7 @@ export default class Wavepot {
         .map(([_, editor]) => [editor.id, editor])
       )]
       .map(([id, editor]) => this.getNode(editor)))
-    console.log('got nodes', nodes)
+
     nodes.forEach(node => {
       node.start('bar')
       node.pause('bar', 1)
@@ -67,13 +130,15 @@ export default class Wavepot {
   }
 
   async getNode (editor) {
-    let node = this.nodes.get(editor.id)
+    const node = this.nodes.get(editor.id)
     if (node) return node
+    return await this.updateNode(editor)
+  }
 
+  async updateNode (editor) {
     const filename = await this.saveEditor(editor)
     const methods = await readTracks(filename)
-    console.log('got methods', methods)
-    node = new LoopScriptNode(filename, methods.default)
+    const node = new LoopScriptNode(filename, methods.default, { bars: 1 })
     node.connect(this.audioContext.destination)
     node.setBpm(this.clock.bpm)
     this.nodes.set(editor.id, node)

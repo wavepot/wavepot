@@ -5,7 +5,7 @@ import getBuffer from './buffer-pool.js'
 const path = import.meta.url.slice(0, import.meta.url.lastIndexOf('/'))
 
 export default class LoopScriptNode {
-  constructor (filename, method) {
+  constructor (filename, method, setup = {}) {
     this.worker = new Worker(`${path}/worker.js`, { type: 'module' })
     this.worker.onmessage = ({ data }) => this['on' + data.type](data)
     this.worker.onerror = error => {
@@ -14,7 +14,8 @@ export default class LoopScriptNode {
     }
     this.context = new Context({
       filename,
-      method
+      method,
+      setup
     })
   }
 
@@ -45,6 +46,7 @@ export default class LoopScriptNode {
     const listener = () => this.onbar()
     this.output.addEventListener('bar', listener)
     this.output.addEventListener('clockended', () => {
+      // TODO: handle re-start()
       this.output.removeEventListener('bar', listener)
     }, { once: true })
     return this
