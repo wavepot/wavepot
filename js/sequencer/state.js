@@ -13,5 +13,5 @@ export default () => ({
 
   dragTimer: 0,
 
-  litColumn: 2
+  litColumn: null
 })

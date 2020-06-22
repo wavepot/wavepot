@@ -12,10 +12,10 @@ export default class Grid {
     this.ctx = this.canvas.getContext('2d')
     this.screen = { width: 1000, height: 1000 } // in px
     this.size = { width: 0, height: 0 } // size in squares
-    this.shift = { x: 0, y: 0 } // shift in squares
+    this.shift = { x: 16, y: 8 } // shift in squares
     this.offset = { x: 0, y: 0 } // offset in squares
-    this.zoom = 50
-    this.scale = 50
+    this.zoom = -1
+    this.scale = 3
     this.maxScale = 6
     this.colors = {
       back: '#ddd',
@@ -84,7 +84,7 @@ export default class Grid {
           ),
           scale
         )
-      ) || 50
+      )
 
     this.zoom =
       Math.max(
