@@ -3,11 +3,11 @@ const offsetOf = v => v >= 0 ? v - Math.floor(v) : 1 - offsetOf(-v)
 let gridValues = new Set
 
 export default class Grid {
-  constructor ({ state }, storage, squareFactory) {
+  constructor ({ state }, storage, tileFactory) {
     this.state = state
     this.storage = storage
     this.squares = new Map
-    this.squareFactory = squareFactory
+    this.tileFactory = tileFactory
     this.canvas = document.createElement('canvas')
     this.ctx = this.canvas.getContext('2d')
     this.screen = { width: 1000, height: 1000 } // in px
@@ -34,10 +34,12 @@ export default class Grid {
     this.setShift(gridState.shift ?? this.shift)
     this.setScale(gridState.scale ?? this.scale)
 
-    const gridSquares = JSON.parse(this.storage.getItem('gridSquares') ?? '[]')
-    this.squares = new Map(gridSquares)
-    for (const [square, id] of this.squares) {
-      this.squares.set(square, this.squareFactory(this.hashToPos(square), id))
+    const gridTiles = new Map(JSON.parse(this.storage.getItem('gridTiles') ?? '[]'))
+    for (const [hashPos, [length, id]] of gridTiles) {
+      const tile = this.tileFactory(this.hashToPos(hashPos), length, id)
+      for (const square of tile.squares) {
+        this.squares.set(this.posToHash(square), tile)
+      }
     }
   }
 
@@ -45,8 +47,12 @@ export default class Grid {
     this.storage.setItem('gridState', JSON.stringify(this))
   }
 
-  saveSquares () {
-    this.storage.setItem('gridSquares', JSON.stringify([...this.squares]))
+  saveTiles () {
+    this.storage.setItem('gridTiles', JSON.stringify(this.tiles))
+  }
+
+  get tiles () {
+    return [...this.squares].filter(([pos, tile]) => pos === this.posToHash(tile.pos))
   }
 
   toJSON () {
@@ -169,23 +175,14 @@ export default class Grid {
     this.ctx.restore()
   }
 
-  drawSquare ({ x, y }) {
-    this.ctx.fillStyle = this.colors.square
-    this.ctx.fillRect(
-      Math.floor(x * this.zoom + this.shift.x * this.zoom) - 1,
-      Math.floor(y * this.zoom + this.shift.y * this.zoom) - 1,
-      Math.round(this.zoom) + 1,
-      Math.round(this.zoom) + 1
-    )
-  }
-
-  drawSquares () {
-    return this.getVisibleSquares()
-      .map(([pos, element]) => {
-        this.drawSquare(this.hashToPos(pos))
-        element.draw(this)
-        return [pos, element]
-      })
+  drawTiles () {
+    const squares = this.getVisibleSquares()
+    squares.forEach(([pos, tile]) => {
+      if (pos === this.posToHash(tile.pos)) {
+        tile.draw(true)
+      }
+    })
+    return squares
   }
 
   getVisibleSquares () {
@@ -216,41 +213,64 @@ export default class Grid {
     )
   }
 
-  hasSquare (pos) {
-    return this.squares.has(this.posToHash(pos))
+  hasSquare (pos, length = 1, excludeTile) {
+    for (let x = pos.x; x < pos.x + length; x++) {
+      const hashPos = this.posToHash({ x, y: pos.y })
+      if (this.squares.has(hashPos) && this.squares.get(hashPos) !== excludeTile) return true
+    }
+    return false
   }
 
-  getSquare (pos) {
+  getTile (pos) {
     return this.squares.get(this.posToHash(pos))
   }
 
-  addSquare (pos) {
-    const hashPos = this.posToHash(pos)
-    const element = this.squareFactory(pos)
-    this.squares.set(hashPos, element)
-    this.render()
-    this.saveSquares()
-    return element
+  addTile (pos, length = 1) {
+    const tile = this.tileFactory(pos, length)
+    for (const square of tile.squares) {
+      this.squares.set(this.posToHash(square), tile)
+    }
+    this.draw()
+    this.saveTiles()
+    return tile
   }
 
-  moveSquare (element, toPos) {
-    const fromHashPos = this.posToHash(element.square)
-    const toHashPos = this.posToHash(toPos)
-    element.square = { ...toPos }
-    this.squares.delete(fromHashPos)
-    this.squares.set(toHashPos, element)
-    this.render()
-    this.saveSquares()
+  setTileLength (tile, newLength) {
+    const { toAdd, toRemove } = tile.setLength(newLength)
+    for (const square of toRemove) {
+      this.squares.delete(this.posToHash(square))
+    }
+    for (const square of toAdd) {
+      this.squares.set(this.posToHash(square), tile)
+    }
+    this.draw()
+    this.saveTiles()
+    return tile
   }
 
-  removeSquare (pos) {
-    const hashPos = this.posToHash(pos)
-    const element = this.squares.get(hashPos)
-    this.squares.delete(hashPos)
-    element.destroy()
-    this.render()
-    this.saveSquares()
-    return element
+  moveTile (tile, toPos) {
+    const oldSquares = tile.squares
+    tile.pos = { ...toPos }
+    const newSquares = tile.squares
+    for (const square of oldSquares) {
+      this.squares.delete(this.posToHash(square))
+    }
+    for (const square of newSquares) {
+      this.squares.set(this.posToHash(square), tile)
+    }
+    this.draw()
+    this.saveTiles()
+  }
+
+  removeTile (pos) {
+    const tile = this.getTile(pos)
+    for (const square of tile.squares) {
+      this.squares.delete(this.posToHash(square))
+    }
+    tile.destroy()
+    this.draw()
+    this.saveTiles()
+    return tile
   }
 
   resize(initial = false) {
@@ -264,9 +284,9 @@ export default class Grid {
     this.ctx.fillRect(0, 0, this.screen.width, this.screen.height)
   }
 
-  render () {
+  draw () {
     this.clear()
     this.drawGrid()
-    this.drawSquares()
+    this.drawTiles()
   }
 }

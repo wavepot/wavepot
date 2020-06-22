@@ -1,7 +1,7 @@
 import State from './state.js'
 import Grid from './grid.js'
 import Mouse from './mouse.js'
-import Editor from './editor.js'
+import ScriptTile from './script-tile.js'
 import { Primrose } from 'primrose'
 
 export default (el, storage) => {
@@ -11,42 +11,42 @@ export default (el, storage) => {
 
   const editors = app.editors = new Map
   const state = app.state = State()
-  const grid = app.grid = new Grid(app, storage, function (square, id, value) {
+  const grid = app.grid = new Grid(app, storage, function (pos, length, id, value) {
     if (id) {
       let instance = editors.get(id)
       if (!instance) {
-        const editor = new Editor(this, square, storage.getItem(id))
-        editor.id = id
-        editor.instance.id = id
-        editor.instance.addEventListener('change', () => {
-          storage.setItem(editor.id, editor.instance.value)
-          app.dispatchEvent(new CustomEvent('change', { detail: editor }))
+        const value = storage.getItem(id)
+        const tile = new ScriptTile(this, pos, length, value)
+        tile.id = id
+        tile.instance.id = id
+        tile.instance.editor.addEventListener('change', () => {
+          storage.setItem(tile.id, tile.instance.editor.value)
+          app.dispatchEvent(new CustomEvent('change', { detail: tile.instance.editor }))
         })
-        Primrose.add(app, editor.instance)
-        editors.set(id, editor.instance)
-        return editor
+        editors.set(id, tile.instance)
+        return tile
       } else {
-        return new Editor(this, square, instance)
+        return new ScriptTile(this, pos, length, instance)
       }
     } else {
-      const editor = new Editor(
+      const tile = new ScriptTile(
         this,
-        square,
+        pos,
+        length,
         // middle click makes a clone, otherwise a mirror
         mouse.which === 2
-          ? state.brush?.instance.value
+          ? state.brush?.instance.editor.value
           : state.brush?.instance
       )
-      if (!editors.has(editor.id)) {
-        editor.instance.addEventListener('change', () => {
-          storage.setItem(editor.id, editor.instance.value)
-          app.dispatchEvent(new CustomEvent('change', { detail: editor }))
+      if (!editors.has(tile.id)) {
+        tile.instance.editor.addEventListener('change', () => {
+          storage.setItem(tile.id, tile.instance.editor.value)
+          app.dispatchEvent(new CustomEvent('change', { detail: tile.instance.editor }))
         })
-        Primrose.add(app, editor.instance)
-        editors.set(editor.id, editor.instance)
-        storage.setItem(editor.id, editor.instance.value)
+        editors.set(tile.id, tile.instance)
+        storage.setItem(tile.id, tile.instance.editor.value)
       }
-      return editor
+      return tile
     }
   })
   const mouse = app.mouse = Mouse(app)
@@ -69,11 +69,16 @@ export default (el, storage) => {
       return
     }
     if (grid.hasSquare(mouse.square)) {
-      if (state.focus !== grid.getSquare(mouse.square)) {
-        if ((mouse.pos.y - mouse.square.y) * grid.zoom < 15 && mouse.pos.x - mouse.square.x > .3) {
-          grid.canvas.className = 'cursor-grab'
-        } else if (grid.zoom - (mouse.pos.x - mouse.square.x) * grid.zoom < 15) {
+      const tile = grid.getTile(mouse.square)
+      if (state.focus !== tile) {
+        if (
+          mouse.square.x === tile.pos.x + tile.length - 1 &&
+          grid.zoom - (mouse.pos.x - mouse.square.x) * grid.zoom < 15) {
           grid.canvas.className = 'cursor-resize'
+        } else if (
+          (mouse.pos.y - mouse.square.y) * grid.zoom < 15 &&
+          (mouse.square.x === tile.pos.x ? mouse.pos.x - mouse.square.x > .3 : true)) {
+          grid.canvas.className = 'cursor-grab'
         } else {
           grid.canvas.className = ''
         }
@@ -85,17 +90,16 @@ export default (el, storage) => {
     }
   }
 
-  const maybeRemoveSquare = pos => {
-    const square = grid.getSquare(pos)
-    if (state.focus && state.focus !== square) {
+  const maybeRemoveTile = pos => {
+    const tile = grid.getTile(pos)
+    if (state.focus && state.focus !== tile) {
       state.focus.blur()
       state.focus = null
     }
     // if there is a square, save it in brush
     // and remove it
-    if (square) {
-      state.brush = square
-      grid.removeSquare(mouse.square)
+    if (tile) {
+      state.brush = grid.removeTile(pos)
     } else {
       // if there isn't a square, clear brush
       state.brush = null
@@ -135,16 +139,30 @@ export default (el, storage) => {
 
     if (noUpdate) return
 
-    grid.render()
+    grid.draw()
   }
 
   const handleMouseMove = e => {
     if (state.grabbed) {
       e.preventDefault()
       mouse.update(mouse.parseEvent(e))
-      const target = grid.getSquare(mouse.square)
-      if (!target) {
-        grid.moveSquare(state.grabbed, mouse.square)
+
+      const [offset, tile] = state.grabbed
+      const pos = {
+        x: mouse.square.x - offset,
+        y: mouse.square.y
+      }
+      if (!grid.hasSquare(pos, tile.length, tile)) {
+        grid.moveTile(tile, pos)
+      }
+      return
+    }
+    if (state.resizing) {
+      e.preventDefault()
+      mouse.update(mouse.parseEvent(e))
+      const newLength = mouse.square.x - state.resizing.pos.x + Math.round(mouse.pos.x - mouse.square.x)
+      if (!grid.hasSquare(state.resizing.pos, newLength, state.resizing)) {
+        state.brush = grid.setTileLength(state.resizing, newLength)
       }
       return
     }
@@ -158,15 +176,15 @@ export default (el, storage) => {
         e.preventDefault()
 
         mouse.update({ x, y, d })
-        if (!grid.hasSquare(mouse.square)) {
-          state.brush = grid.addSquare(mouse.square)
+        if (!grid.hasSquare(mouse.square, state.brush?.length)) {
+          state.brush = grid.addTile(mouse.square, state.brush?.length)
         }
         return
       }
 
       // when an editor is focused, delegate event to it
-      if (state.focus === grid.getSquare(mouse.square)) {
-        return state.focus.instance.readMouseMoveEvent(fixEvent(e))
+      if (state.focus === grid.getTile(mouse.square)) {
+        return state.focus.instance.editor.readMouseMoveEvent(fixEvent(e))
       }
 
       // if we have a distance, then this is a pinch zoom
@@ -196,12 +214,12 @@ export default (el, storage) => {
 
       mouse.update({ x, y, d })
 
-      grid.render()
+      grid.draw()
     } else if (mouse.down === 3) {
       if (!state.focus) {
         e.preventDefault()
         mouse.update(mouse.parseEvent(e))
-        maybeRemoveSquare(mouse.square)
+        maybeRemoveTile(mouse.square)
       }
     } else if (!mouse.down) {
       mouse.update(mouse.parseEvent(e))
@@ -221,29 +239,35 @@ export default (el, storage) => {
       state.dragTimer = performance.now()
       // mouse down on active square
       if (grid.hasSquare(mouse.square)) {
+        const tile = grid.getTile(mouse.square)
+        state.brush = tile
         updateCursorMode()
         if (grid.canvas.className === 'cursor-grab') {
-          state.grabbed = grid.getSquare(mouse.square)
+          state.grabbed = [mouse.square.x - tile.pos.x, tile]
           updateCursorMode()
           return
         }
+        if (grid.canvas.className === 'cursor-resize') {
+          state.resizing = tile
+          return
+        }
         // mouse down on focused squard, delegate event to it
-        if (state.focus === grid.getSquare(mouse.square)) {
-          return state.focus.instance.readMouseDownEvent(fixEvent(e))
+        if (state.focus === tile) {
+          return state.focus.instance.editor.readMouseDownEvent(fixEvent(e))
         }
         // TODO: do something?
       } else {
         // start drawing on long press
         state.drawingTimeout = setTimeout(() => {
           state.drawing = true
-          if (!grid.hasSquare(mouse.square)) {
-            state.brush = grid.addSquare(mouse.square)
+          if (!grid.hasSquare(mouse.square, state.brush?.length)) {
+            state.brush = grid.addTile(mouse.square, state.brush?.length)
           }
         }, 500)
       }
     } else if (mouse.which === 3) {
       if (!state.focus) {
-        maybeRemoveSquare(mouse.square)
+        maybeRemoveTile(mouse.square)
       }
     }
   }
@@ -265,38 +289,46 @@ export default (el, storage) => {
       return
     }
 
+    if (state.resizing) {
+      state.resizing = null
+      e.preventDefault()
+      updateCursorMode()
+      return
+    }
+
     if (mouse.which === 1) { // left click
       if (performance.now() - state.dragTimer < 200 || state.focus) {
         if (grid.hasSquare(mouse.square)) {
-          const square = grid.getSquare(mouse.square)
-          state.brush = square
-          if (state.focus === square) {
-            state.focus.instance.readMouseUpEvent(fixEvent(e))
+          const tile = grid.getTile(mouse.square)
+          state.brush = tile
+          if (state.focus === tile) {
+            state.focus.instance.editor.readMouseUpEvent(fixEvent(e))
           } else if (!state.didMove) {
             if (state.focus) {
               state.focus.blur()
             }
-            state.focus = state.brush = square
+            state.focus = tile
             state.focus.focus()
-            state.focus.instance.readMouseDownEvent(fixEvent(e))
-            state.focus.instance.readMouseUpEvent(fixEvent(e))
+            state.focus.instance.editor.readMouseDownEvent(fixEvent(e))
+            state.focus.instance.editor.readMouseUpEvent(fixEvent(e))
           }
         } else if (state.focus && !state.didMove) {
           state.focus.blur()
           state.focus = null
         } else if (!state.didMove) {
-          state.brush = grid.addSquare(mouse.square)
+          if (!grid.hasSquare(mouse.square, state.brush?.length)) {
+            state.brush = grid.addTile(mouse.square, state.brush?.length)
+          }
         }
       }
     } else if (mouse.which === 2) {
       e.preventDefault()
-      const square = grid.getSquare(mouse.square)
+      const tile = grid.getTile(mouse.square)
       // make clone
-      if (square) { // if shift is pressed, replace with clone and focus
-        state.brush = square
-        grid.removeSquare(mouse.square)
+      if (tile) { // if shift is pressed, replace with clone and focus
+        state.brush = grid.removeTile(mouse.square)
         if (state.focus) state.focus.blur()
-        state.focus = grid.addSquare(mouse.square)
+        state.focus = grid.addTile(mouse.square, state.brush?.length)
         state.focus.focus()
         // TODO: copy also caret/scroll position
       }
@@ -309,13 +341,13 @@ export default (el, storage) => {
 
   const handleMouseOver = e => {
     if (state.focus) {
-      return state.focus.instance.readMouseOverEvent(fixEvent(e))
+      return state.focus.instance.editor.readMouseOverEvent(fixEvent(e))
     }
   }
 
   const handleMouseOut = e => {
     if (state.focus) {
-      return state.focus.instance.readMouseOverEvent(fixEvent(e))
+      return state.focus.instance.editor.readMouseOverEvent(fixEvent(e))
     }
   }
 
@@ -336,7 +368,7 @@ export default (el, storage) => {
         } else {
           const fullState = JSON.stringify({
             gridState: JSON.stringify(grid),
-            gridSquares: JSON.stringify([...grid.squares]),
+            gridTiles: JSON.stringify([...grid.tiles]),
             ...Object.fromEntries([...editors].map(([id, instance]) => [id, instance.value]))
           }, null, 2)
           app.dispatchEvent(new CustomEvent('export', { detail: fullState }))
@@ -378,12 +410,12 @@ export default (el, storage) => {
         // move screen and put it into view
         // i.e generic solution: never let focused elements out of view
         // or never move out of current focus
-        const { x, y } = state.focus.square
+        const { x, y } = state.focus.pos
         let focus
-        if (keys.a)      focus = grid.getSquare({ x: x-1, y }) // left
-        else if (keys.d) focus = grid.getSquare({ x: x+1, y }) // right
-        else if (keys.w) focus = grid.getSquare({ x, y: y-1 }) // up
-        else if (keys.s) focus = grid.getSquare({ x, y: y+1 }) // down
+        if (keys.a)      focus = grid.getTile({ x: x-1, y }) // left
+        else if (keys.d) focus = grid.getTile({ x: x+1, y }) // right
+        else if (keys.w) focus = grid.getTile({ x, y: y-1 }) // up
+        else if (keys.s) focus = grid.getTile({ x, y: y+1 }) // down
         if (focus) {
           e.preventDefault()
           state.focus.blur()
@@ -401,7 +433,7 @@ export default (el, storage) => {
 
   const handleWindowResize = () => {
     grid.resize()
-    grid.render()
+    grid.draw()
   }
 
   const handleContextMenu = e => {
@@ -442,13 +474,13 @@ export default (el, storage) => {
 
   grid.load()
   grid.saveState()
-  grid.saveSquares()
-  grid.render()
+  grid.saveTiles()
+  grid.draw()
   el.appendChild(grid.canvas)
 
   app.highlightColumn = col => {
     state.litColumn = col
-    grid.render()
+    grid.draw()
   }
 
   app.destroy = () => {

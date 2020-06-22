@@ -4,6 +4,7 @@ export default () => ({
   focus: null,
   brush: null,
   grabbed: null,
+  resizing: null,
 
   zoomStart: null,
   zoomTimeout: null,
