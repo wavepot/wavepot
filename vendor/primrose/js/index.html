@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="en-us">
+
+<head prefix="og: http://ogp.me/ns#">
+    <meta charset="utf-8">
+    <title>Primrose: Text Editor in HTML5 Canvas</title>
+    <meta name="description" content="Primrose is a syntax-highlighting text editor rendered inside of a Canvas element in web pages. It is useful for live-coding scenarios." />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.primrosevr.com" />
+    <meta property="og:site_name" content="Primrose" />
+    <meta property="og:title" content="Primrose: Text Editor in HTML5 Canvas" />
+    <meta property="og:description" content="Primrose is a syntax-highlighting text editor rendered inside of a Canvas element in web pages. It is useful for live-coding scenarios." />
+    <meta property="og:image" content="https://www.primrosevr.com/repo-preview.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:domain" content="primrosevr.com" />
+    <meta name="twitter:title" content="Primrose: Text Editor in HTML5 Canvas" />
+    <meta name="twitter:description" content="Primrose is a syntax-highlighting text editor rendered inside of a Canvas element in web pages. It is useful for live-coding scenarios." />
+    <meta name="twitter:image" content="https://www.primrosevr.com/repo-preview.jpg" />
+    <meta name="twitter:creator" content="@Sean_McBeth" />
+
+    <meta name="viewport" content="width=device-width, shrink-to-fit=0, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="keywords" content="text editor, HTML5, canvas, JavaScript, syntax highlighting">
+    <meta name="msapplication-TileColor" content="#212542">
+    <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#212542">
+    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="stylesheet" href="stylesheets/general.css" />
+    <link rel="stylesheet" href="stylesheets/icons.css" />
+    <link rel="stylesheet" href="stylesheets/gui.css" />
+    <style>
+        primrose {
+            display: block;
+            border: 2px inset #c0c0c0;
+            white-space: pre-wrap;
+            overflow-x: hidden;
+            overflow-y: scroll;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>
+            <img src="icons/android-icon-36x36.png" alt="logo" title="Primrose logo">
+            Primrose
+            <span class="version-number" style="text-transform:none">v1.1.x</span>
+
+            <a href="https://github.com/capnmidnight/Primrose" target="_blank" rel="noopener" title="Follow Primrose on Github"><span class="icon icon-github"><span class="accessibility-text">Follow Primrose on Github</span></span></a>
+
+            <a href="https://www.npmjs.com/package/primrose" target="_blank" rel="noopener" title="Follow Primrose on NPM"><span class="accessibility-text">Follow Primrose on NPM</span><svg viewBox="0 0 780 250" class="icon icon-none" style="width:70px"><path fill="#231F20" d="M240,250h100v-50h100V0H240V250z M340,50h50v100h-50V50z M480,0v200h100V50h50v150h50V50h50v150h50V0H480z M0,200h100V50h50v150h50V0H0V200z"></path></svg></a>
+        </h1>
+
+        <p>A source code text editor that renders in an HTML5 canvas. Useful for texturing objects in WebGL apps.</p>
+        <h2>Features</h2>
+        <ul>
+            <li>International keyboard support (left-to-right rendering only)</li>
+            <li>Wide Unicode character-aware</li>
+            <li>Line numbering</li>
+            <li>Color theming</li>
+            <li>
+                Syntax highlighting for:
+                <ul>
+                    <li>JavaScript,</li>
+                    <li>HTML, and</li>
+                    <li>BASIC</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>Demo</h2>
+
+        <h3>In 2D</h3>
+        <select id="demos">
+            <option value="js" selected>JavaScript</option>
+            <option value="html">HTML</option>
+            <option value="bas">BASIC</option>
+            <option value="txt">Plain Text</option>
+        </select>
+        <select id="themes">
+            <option value="dark" selected>Dark</option>
+            <option value="light">Light</option>
+        </select>
+        <primrose style="width:100%;height:30em;max-height:40vh;">
+function testDemo(scene) {
+    // 🐔🥚🥚🥚
+    // 🥚🐔🥚🥚
+    // 🥚🥚🐔🥚
+    // 🥚🥚🥚🐔
+    var GRASS = "../shared_assets/images/grass.png",
+        ROCK = "../shared_assets/images/rock.png",
+        SAND = "../shared_assets/images/sand.png",
+        WATER = "../shared_assets/images/water.png",
+        DECK = "../shared_assets/images/deck.png",
+        WIDTH = 5,
+        HEIGHT = 5,
+        DEPTH = 5,
+        MIDX = WIDTH / 2 - 5,
+        MIDY = HEIGHT / 2,
+        MIDZ = DEPTH / 2,
+        start = hub()
+            .addTo(scene)
+            .at(-MIDX, 0, -DEPTH - 2);
+
+    const balls = [];
+
+    for (var i = 0; i < 10; ++i) {
+        balls.push(brick(DECK)
+            .addTo(start)
+            .at(number(WIDTH),
+                number(HEIGHT),
+                number(DEPTH)));
+
+        balls[i].velocity = v3(
+            number(WIDTH),
+            number(HEIGHT),
+            number(DEPTH));
+    }
+
+    function update(dt) {
+        for (var i = 0; i < balls.length; ++i) {
+            var ball = balls[i],
+                p = ball.position,
+                v = ball.velocity;
+            p.add(v.clone()
+                .multiplyScalar(dt));
+            if (p.x < 0 && v.x < 0 || WIDTH <= p.x && v.x > 0) {
+                v.x *= -1;
+            }
+            if (p.y < 1 && v.y < 0 || HEIGHT <= p.y && v.y > 0) {
+                v.y *= -1;
+            }
+            if (p.z < 0 && v.z < 0 || DEPTH <= p.z && v.z > 0) {
+                v.z *= -1;
+            }
+        }
+    }
+}
+        </primrose>
+
+        <h3>In 3D</h3>
+        <iframe src="demo3d.html" style="width:100%;height:40em;max-height:50vh;"></iframe>
+
+        <h2>Instructions</h2>
+        <p>Try out what you would normally do in a text editor.</p>
+
+        <h2>Made by</h2>
+        <p>
+            <a href="https://www.seanmcbeth.com" target="_blank" rel="noopener">
+                <span class="icon icon-shrink" title="Sean T. McBeth" />
+            </a>
+            Sean T. McBeth
+        </p>
+        <p>
+            <a href="https://twitter.com/Sean_McBeth" target="_blank" rel="noopener">
+                <span class="icon icon-twitter" title="Follow @Sean_McBeth on Twitter" />
+            </a>
+            Follow @Sean_McBeth on Twitter
+        </p>
+    </main>
+
+    <script type="module" src="index.js"></script>
+</body>
+</html>
+

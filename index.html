@@ -3,7 +3,7 @@
 
 <head>
 <title>wavepot</title>
-<link rel="stylesheet" href="https://repos.localhost:6060/wavepot/sequencer/wavepot.css">
+<link rel="stylesheet" href="/wavepot.css">
 </head>
 
 <body>
@@ -12,8 +12,7 @@
 <script type="importmap">
 {
   "imports": {
-    "sequencer": "https://repos.localhost:6060/wavepot/sequencer/js/sequencer.js",
-    "primrose": "https://repos.localhost:6060/wavepot/sequencer/vendor/primrose/js/package/index.js"
+    "primrose": "/vendor/primrose/js/package/index.js"
   }
 }
 </script>
@@ -22,7 +21,7 @@ window.DEBUG = true
 
 const debug = window.debug = {}
 
-import Wavepot from './js/wavepot.js'
+import Wavepot from '/js/wavepot.js'
 
 const wavepot = debug.wavepot = new Wavepot({
   el: container,

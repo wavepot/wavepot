@@ -1,4 +1,4 @@
-import Sequencer from 'sequencer'
+import Sequencer from './sequencer/sequencer.js'
 import Clock from './clock.js'
 import DynamicCache from './dynamic-cache.js'
 import LoopScriptNode from './loop-script/node.js'
