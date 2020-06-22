@@ -21,7 +21,7 @@ export default (el, storage) => {
         tile.instance.id = id
         tile.instance.editor.addEventListener('change', () => {
           storage.setItem(tile.id, tile.instance.editor.value)
-          app.dispatchEvent(new CustomEvent('change', { detail: tile.instance.editor }))
+          app.dispatchEvent(new CustomEvent('change', { detail: tile }))
         })
         editors.set(id, tile.instance)
         return tile
@@ -41,7 +41,7 @@ export default (el, storage) => {
       if (!editors.has(tile.id)) {
         tile.instance.editor.addEventListener('change', () => {
           storage.setItem(tile.id, tile.instance.editor.value)
-          app.dispatchEvent(new CustomEvent('change', { detail: tile.instance.editor }))
+          app.dispatchEvent(new CustomEvent('change', { detail: tile }))
         })
         editors.set(tile.id, tile.instance)
         storage.setItem(tile.id, tile.instance.editor.value)
@@ -369,7 +369,7 @@ export default (el, storage) => {
           const fullState = JSON.stringify({
             gridState: JSON.stringify(grid),
             gridTiles: JSON.stringify([...grid.tiles]),
-            ...Object.fromEntries([...editors].map(([id, instance]) => [id, instance.value]))
+            ...Object.fromEntries([...editors].map(([id, instance]) => [id, instance.editor.value]))
           }, null, 2)
           app.dispatchEvent(new CustomEvent('export', { detail: fullState }))
           keys.Control = false

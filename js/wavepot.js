@@ -76,9 +76,9 @@ export default class Wavepot {
       }
       input.click()
     })
-    this.sequencer.addEventListener('save', ({ detail: editor }) => {
-      console.log('saving:', editor)
-      this.updateNode(editor)
+    this.sequencer.addEventListener('save', ({ detail: tile }) => {
+      console.log('saving:', tile)
+      this.updateNode(tile)
     })
     this.sequencer.addEventListener('play', () => {
       this.start()
@@ -117,11 +117,11 @@ export default class Wavepot {
   }
 
   async scheduleNextNodes () {
-    const nodes = await Promise.all([...new Map(
-      this.getNextPlaybackSquares()
-        .map(([_, editor]) => [editor.id, editor])
-      )]
-      .map(([id, editor]) => this.getNode(editor)))
+    const nodes = await Promise.all(
+      this
+        .getNextPlaybackTiles()
+        .map(tile => this.getNode(tile))
+    )
 
     nodes.forEach(node => {
       node.start('bar')
@@ -129,19 +129,19 @@ export default class Wavepot {
     })
   }
 
-  async getNode (editor) {
-    const node = this.nodes.get(editor.id)
+  async getNode (tile) {
+    const node = this.nodes.get(tile.id)
     if (node) return node
-    return await this.updateNode(editor)
+    return await this.updateNode(tile)
   }
 
-  async updateNode (editor) {
-    const filename = await this.saveEditor(editor)
+  async updateNode (tile) {
+    const filename = await this.saveEditor(tile.instance.editor)
     const methods = await readTracks(filename)
-    const node = new LoopScriptNode(filename, methods.default, { bars: 1 })
+    const node = new LoopScriptNode(filename, methods.default, { bars: tile.length })
     node.connect(this.audioContext.destination)
     node.setBpm(this.clock.bpm)
-    this.nodes.set(editor.id, node)
+    this.nodes.set(tile.id, node)
     return node
   }
 
@@ -170,15 +170,15 @@ export default class Wavepot {
     this.sequencer.highlightColumn(this.playingPosition)
   }
 
-  getNextPlaybackSquares () {
+  getNextPlaybackTiles () {
     const x = this.getNextPlaybackPosition()
     const { grid } = this.sequencer
-    return grid.getAudibleSquares()
-      .filter(([pos]) => grid.hashToPos(pos).x === x)
+    return [...new Map(grid.getAudibleSquares()
+      .filter(([pos]) => grid.hashToPos(pos).x === x)).values()]
   }
 
   async saveEditor (editor) {
-    const code = editor.instance.value
+    const code = editor.value
     const filename = readFilenameFromCode(code)
     return await this.cache.put(filename, code)
   }
