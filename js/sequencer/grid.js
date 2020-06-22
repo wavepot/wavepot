@@ -233,6 +233,16 @@ export default class Grid {
     return element
   }
 
+  moveSquare (element, toPos) {
+    const fromHashPos = this.posToHash(element.square)
+    const toHashPos = this.posToHash(toPos)
+    element.square = { ...toPos }
+    this.squares.delete(fromHashPos)
+    this.squares.set(toHashPos, element)
+    this.render()
+    this.saveSquares()
+  }
+
   removeSquare (pos) {
     const hashPos = this.posToHash(pos)
     const element = this.squares.get(hashPos)

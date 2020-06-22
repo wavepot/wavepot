@@ -59,9 +59,13 @@ export default (el, storage) => {
     return e
   }
 
-  const updatePointer = className => {
+  const updateCursorMode = className => {
     if (className) {
       grid.canvas.className = className
+      return
+    }
+    if (state.grabbed) {
+      grid.canvas.className = 'cursor-grabbing'
       return
     }
     if (grid.hasSquare(mouse.square)) {
@@ -135,6 +139,15 @@ export default (el, storage) => {
   }
 
   const handleMouseMove = e => {
+    if (state.grabbed) {
+      e.preventDefault()
+      mouse.update(mouse.parseEvent(e))
+      const target = grid.getSquare(mouse.square)
+      if (!target) {
+        grid.moveSquare(state.grabbed, mouse.square)
+      }
+      return
+    }
     if (mouse.down === 1) {
       const { x, y, d } = mouse.parseEvent(e)
 
@@ -192,7 +205,7 @@ export default (el, storage) => {
       }
     } else if (!mouse.down) {
       mouse.update(mouse.parseEvent(e))
-      updatePointer()
+      updateCursorMode()
     }
   }
 
@@ -208,6 +221,12 @@ export default (el, storage) => {
       state.dragTimer = performance.now()
       // mouse down on active square
       if (grid.hasSquare(mouse.square)) {
+        updateCursorMode()
+        if (grid.canvas.className === 'cursor-grab') {
+          state.grabbed = grid.getSquare(mouse.square)
+          updateCursorMode()
+          return
+        }
         // mouse down on focused squard, delegate event to it
         if (state.focus === grid.getSquare(mouse.square)) {
           return state.focus.instance.readMouseDownEvent(fixEvent(e))
@@ -236,6 +255,13 @@ export default (el, storage) => {
     if (state.drawing) {
       state.drawing = false
       e.preventDefault()
+      return
+    }
+
+    if (state.grabbed) {
+      state.grabbed = null
+      e.preventDefault()
+      updateCursorMode()
       return
     }
 
@@ -276,7 +302,7 @@ export default (el, storage) => {
       }
     }
 
-    updatePointer()
+    updateCursorMode()
 
     state.didMove = false
   }
@@ -298,7 +324,7 @@ export default (el, storage) => {
     keys[e.key] = true
 
     if (state.focus) {
-      updatePointer('cursor-none')
+      updateCursorMode('cursor-none')
     }
 
     if (keys.Control) {
@@ -343,7 +369,7 @@ export default (el, storage) => {
         e.preventDefault()
         state.focus.blur()
         state.focus = null
-        updatePointer()
+        updateCursorMode()
       }
     }
     if (keys.Alt) {

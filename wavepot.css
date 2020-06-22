@@ -24,6 +24,10 @@ canvas.cursor-grab {
   cursor: grab;
 }
 
+canvas.cursor-grabbing {
+  cursor: grabbing;
+}
+
 canvas.cursor-resize {
   cursor: col-resize;
 }

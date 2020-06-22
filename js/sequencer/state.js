@@ -2,6 +2,8 @@ export default () => ({
   keys: {},
 
   focus: null,
+  brush: null,
+  grabbed: null,
 
   zoomStart: null,
   zoomTimeout: null,
