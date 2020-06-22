@@ -19,3 +19,19 @@ html, body {
 canvas {
   image-rendering: pixelated;
 }
+
+canvas.cursor-grab {
+  cursor: grab;
+}
+
+canvas.cursor-resize {
+  cursor: col-resize;
+}
+
+canvas.cursor-text {
+  cursor: text;
+}
+
+canvas.cursor-none {
+  cursor: none;
+}

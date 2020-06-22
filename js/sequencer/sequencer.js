@@ -59,6 +59,45 @@ export default (el, storage) => {
     return e
   }
 
+  const updatePointer = className => {
+    if (className) {
+      grid.canvas.className = className
+      return
+    }
+    if (grid.hasSquare(mouse.square)) {
+      if (state.focus !== grid.getSquare(mouse.square)) {
+        if ((mouse.pos.y - mouse.square.y) * grid.zoom < 15 && mouse.pos.x - mouse.square.x > .3) {
+          grid.canvas.className = 'cursor-grab'
+        } else if (grid.zoom - (mouse.pos.x - mouse.square.x) * grid.zoom < 15) {
+          grid.canvas.className = 'cursor-resize'
+        } else {
+          grid.canvas.className = ''
+        }
+      } else {
+        grid.canvas.className = 'cursor-text'
+      }
+    } else {
+      grid.canvas.className = ''
+    }
+  }
+
+  const maybeRemoveSquare = pos => {
+    const square = grid.getSquare(pos)
+    if (state.focus && state.focus !== square) {
+      state.focus.blur()
+      state.focus = null
+    }
+    // if there is a square, save it in brush
+    // and remove it
+    if (square) {
+      state.brush = square
+      grid.removeSquare(mouse.square)
+    } else {
+      // if there isn't a square, clear brush
+      state.brush = null
+    }
+  }
+
   const handleMouseWheel = (e, noUpdate = false) => {
     if (state.focus && !state.keys.Control) return
     e.preventDefault()
@@ -151,23 +190,9 @@ export default (el, storage) => {
         mouse.update(mouse.parseEvent(e))
         maybeRemoveSquare(mouse.square)
       }
-    }
-  }
-
-  const maybeRemoveSquare = pos => {
-    const square = grid.getSquare(pos)
-    if (state.focus && state.focus !== square) {
-      state.focus.blur()
-      state.focus = null
-    }
-    // if there is a square, save it in brush
-    // and remove it
-    if (square) {
-      state.brush = square
-      grid.removeSquare(mouse.square)
-    } else {
-      // if there isn't a square, clear brush
-      state.brush = null
+    } else if (!mouse.down) {
+      mouse.update(mouse.parseEvent(e))
+      updatePointer()
     }
   }
 
@@ -251,6 +276,8 @@ export default (el, storage) => {
       }
     }
 
+    updatePointer()
+
     state.didMove = false
   }
 
@@ -269,6 +296,10 @@ export default (el, storage) => {
   const handleKeyDown = e => {
     const { keys } = state
     keys[e.key] = true
+
+    if (state.focus) {
+      updatePointer('cursor-none')
+    }
 
     if (keys.Control) {
       if (keys.s) {
@@ -312,6 +343,7 @@ export default (el, storage) => {
         e.preventDefault()
         state.focus.blur()
         state.focus = null
+        updatePointer()
       }
     }
     if (keys.Alt) {
