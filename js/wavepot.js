@@ -140,11 +140,12 @@ export default class Wavepot {
     }
     chains.push(chain)
 
-    chains.forEach(chain => this.playChain(chain))
+    chains.filter(chain => chain.length).forEach(chain => this.playChain(chain))
   }
 
-  getNodes (tiles) {
-    return Promise.all(tiles.map(tile => this.getNode(tile)))
+  async getNodes (tiles) {
+    const nodes = await Promise.all(tiles.map(tile => this.getNode(tile)))
+    return nodes.filter(Boolean)
   }
 
   getNode (tile) {
