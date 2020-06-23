@@ -125,31 +125,51 @@ export default class Wavepot {
   }
 
   async scheduleNextNodes () {
-    this
-      .getNextPlaybackTiles()
-      .forEach(tile => this.playNode(tile))
+    const nodes = await this.getNodes(this.getNextPlaybackTiles())
+
+    let prev = null
+    let chain = []
+    const chains = []
+    for (const node of nodes) {
+      if (prev && prev.tile.pos.y !== node.tile.pos.y + 1) {
+        chains.push(chain)
+        chain = []
+      }
+      chain.unshift(node)
+      prev = node
+    }
+    chains.push(chain)
+
+    chains.forEach(chain => this.playChain(chain))
   }
 
-  async playNode (tile) {
-    const [leftMost, rightMost] = this.getPlaybackRange()
-    let node = this.nodes.get(tile)
-    if (!node) node = await this.updateNode(tile)
-    const offset = tile.pos.x < leftMost ? leftMost - tile.pos.x : 0
-    const duration = tile.pos.x + tile.length > rightMost
-      ? tile.length - (tile.pos.x + tile.length - rightMost - offset) + 1
-      : tile.length
-    node.start(
-      'bar',
-      offset,
-      duration
-    )
+  getNodes (tiles) {
+    return Promise.all(tiles.map(tile => this.getNode(tile)))
+  }
+
+  getNode (tile) {
+    return this.nodes.get(tile) ?? this.updateNode(tile)
+  }
+
+  async playChain (chain) {
+    const x = this.getNextPlaybackPosition()
+    const last = chain.pop()
+
+    let input
+    for (const node of chain) {
+      input = await node.render(x - node.tile.pos.x, input, true)
+    }
+
+    const bar = x - last.tile.pos.x
+    await last.render(bar, input)
+    last.start(bar)
   }
 
   async updateNode (tile) {
     const filename = await this.saveEditor(tile.instance.editor)
     const methods = await readTracks(filename)
     if (!methods.default) return
-    console.log('rendering', filename, 'bars', tile.length)
+    console.log('updating node:', filename)
     const node = new ScriptNode(
       this.audioContext,
       filename,
@@ -157,9 +177,9 @@ export default class Wavepot {
       this.clock.bpm,
       tile.length
     )
-    node.id = tile.id
+    node.tile = tile
     node.connect(this.audioContext.destination)
-    await node.render()
+    await node.setup()
     this.nodes.set(tile, node)
     return node
   }
@@ -169,19 +189,19 @@ export default class Wavepot {
     const sortedSquares = grid.getAudibleSquares()
       .map(([pos]) => grid.hashToPos(pos))
       .sort((a, b) => a.x > b.x ? 1 : a.x < b.x ? -1 : 0)
-    if (!sortedSquares.length) return [-1,-1]
-    const leftMost = sortedSquares[0].x
-    const rightMost = sortedSquares.pop().x
-    return [leftMost, rightMost]
+    if (!sortedSquares.length) return [-1,-1] // TODO: return null?
+    const left = sortedSquares[0].x
+    const right = sortedSquares.pop().x
+    return [left, right]
   }
 
   getNextPlaybackPosition () {
-    const [leftMost, rightMost] = this.getPlaybackRange()
-    let playingPosition = this.playingPosition + 1
-    if (playingPosition > rightMost || playingPosition < leftMost) {
-      playingPosition = leftMost
+    const [left, right] = this.getPlaybackRange()
+    let x = this.playingPosition + 1
+    if (x < left || x > right) {
+      x = left
     }
-    return playingPosition
+    return x
   }
 
   advancePlaybackPosition () {
@@ -190,15 +210,13 @@ export default class Wavepot {
   }
 
   getNextPlaybackTiles () {
-    const [leftMost, rightMost] = this.getPlaybackRange()
-    const x = this.playingPosition
+    const x = this.getNextPlaybackPosition()
     const { grid } = this.sequencer
-    return [...new Map(grid.getAudibleSquares()
-      .filter(([pos, tile]) =>
-        (grid.hashToPos(pos).x === x &&
-        x === tile.pos.x) ||
-        tile.pos.x < leftMost && x === leftMost
-      )).values()]
+    return grid.getAudibleSquares()
+      .filter(([pos]) => x === grid.hashToPos(pos).x)
+      .map(([_, tile]) => tile)
+      // bottom first
+      .sort((b, a) => a.pos.y > b.pos.y ? 1 : a.pos.y < b.pos.y ? -1 : 0)
   }
 
   async saveEditor (editor) {

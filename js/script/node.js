@@ -4,26 +4,45 @@ export default class ScriptNode {
   constructor (audioContext, filename, method, bpm, bars) {
     this.context = this.audioContext = audioContext
     this.output = this.audioContext.createGain()
-    this.bars = bars
-    this.scriptSource = new ScriptSource(audioContext, filename, method, bpm, bars)
-    this.clock = this.scriptSource.clock
+    this.script = new ScriptSource(audioContext, filename, method, bpm, bars)
+    this.clock = this.script.clock
+    this.buffers = []
   }
 
-  render () {
-    return this.scriptSource.render()
+  setup () {
+    return this.script.setup()
   }
 
-  start (syncType, offset = 0, duration = this.bars, ahead = 0) {
+  async render (bar = 0, input, chain = false) {
+    const output = await this.script.render(bar, input)
+    if (chain) {
+      return output
+    } else {
+      const { length, channels, sampleRate } = this.script.worker.context
+
+      const buffer = this.buffers[bar] = this.buffers[bar] ??
+        this.audioContext.createBuffer(
+          channels,
+          length,
+          sampleRate
+        )
+
+      for (const [i, data] of output.entries()) {
+        buffer.getChannelData(i).set(data)
+      }
+    }
+  }
+
+  start (bar = 0) {
     const syncTime = this.clock.syncAt(
-      this.clock.current.time + this.clock.times[syncType] * ahead
-    )[syncType]
-    const offsetTime = this.clock.times[syncType] * offset
-    const durationTime = (this.clock.times[syncType] * duration) - offsetTime
+      this.clock.current.time + this.clock.times.bar
+    ).bar
+
     const oldBufferSource = this.bufferSource
     this.bufferSource = this.audioContext.createBufferSource()
-    this.bufferSource.buffer = this.scriptSource.audioBuffer
+    this.bufferSource.buffer = this.buffers[bar]
     this.bufferSource.connect(this.output)
-    this.bufferSource.start(syncTime, offsetTime, durationTime)
+    this.bufferSource.start(syncTime)
     if (oldBufferSource) oldBufferSource.stop(syncTime)
     return syncTime
   }

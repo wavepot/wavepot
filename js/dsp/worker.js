@@ -27,34 +27,9 @@ const worker = {
     postMessage({ type: 'setup', context })
   },
 
-  testFirstSample ({ context }) {
-    context = new Context(context)
-    context.firstSample = this.fn(context)
-    postMessage({ type: 'setup', context })
-  },
-
   render ({ context }) {
     context = new Context(context)
-
-    if (context.firstSample != null) {
-      context.n++ // first frame consumed
-      if (!context.startIndex) context.startIndex = 0
-      if (context.output.length === 1) {
-        context.output[0][context.startIndex] = toFinite(context.firstSample)
-      } else {
-        for (const [channel, sample] of context.firstSample.entries()) {
-          context.output[channel][context.startIndex] = toFinite(sample)
-        }
-      }
-      context.startIndex++
-    }
-
     render(this.fn, context)
-
-    if (context.firstSample) {
-      context.firstSample = null
-      context.startIndex = 0
-    }
     postMessage({ type: 'render', context })
   }
 }

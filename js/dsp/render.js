@@ -22,7 +22,7 @@ export default (fn, context) => {
 const renderMono = (fn, context) => {
   const { output, length } = context
 
-  for (let i = context.startIndex ?? 0; //
+  for (let i = 0;
     i < length; // render one length
     i++,
     context.n++ // increment sample position
@@ -35,7 +35,7 @@ const renderMulti = (fn, context) => {
   const { output, length } = context
   const channels = output.length
 
-  for (let i = context.startIndex ?? 0,
+  for (let i = 0,
     channel = 0,
     sample = [];
     i < length; // render one length
