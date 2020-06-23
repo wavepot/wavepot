@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/decimator",
+  "_id": "decimator@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/decimator",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "decimator@github:opendsp/decimator",
+    "name": "decimator",
+    "escapedName": "decimator",
+    "rawSpec": "github:opendsp/decimator",
+    "saveSpec": "github:opendsp/decimator",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/decimator#3fa3907420a9620bb6d42f9a5f742759e61a4de9",
+  "_spec": "decimator@github:opendsp/decimator",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "potasmic"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/Decimator/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "downsampler",
+  "homepage": "https://github.com/opendsp/Decimator#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "decimator",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/Decimator.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

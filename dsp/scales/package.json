@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/scales",
+  "_id": "scales@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/scales",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "scales@github:opendsp/scales",
+    "name": "scales",
+    "escapedName": "scales",
+    "rawSpec": "github:opendsp/scales",
+    "saveSpec": "github:opendsp/scales",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/scales#4a49ca7aa2a7235e01e72611ce9cf52d3e5b4727",
+  "_spec": "scales@github:opendsp/scales",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/scales/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "musical scales",
+  "homepage": "https://github.com/opendsp/scales#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "scales",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/scales.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

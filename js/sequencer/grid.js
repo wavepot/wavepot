@@ -178,7 +178,8 @@ export default class Grid {
   drawTiles () {
     const squares = this.getVisibleSquares()
     squares.forEach(([pos, tile]) => {
-      if (pos === this.posToHash(tile.pos)) {
+      if (pos === this.posToHash(tile.pos)
+        || this.hashToPos(pos).x === -Math.ceil(this.shift.x)) {
         tile.draw(true)
       }
     })

@@ -2,11 +2,9 @@ import Clock from '../clock.js'
 import Context from '../dsp/context.js'
 import getBuffer from './buffer-pool.js'
 
-const path = import.meta.url.slice(0, import.meta.url.lastIndexOf('/'))
-
 export default class LoopScriptNode {
   constructor (filename, method, setup = {}) {
-    this.worker = new Worker(`${path}/worker.js`, { type: 'module' })
+    this.worker = new Worker('/js/dsp/worker.js', { type: 'module' })
     this.worker.onmessage = ({ data }) => this['on' + data.type](data)
     this.worker.onerror = error => {
       console.error('LoopScriptNode: Worker failed')
@@ -114,6 +112,7 @@ export default class LoopScriptNode {
   }
 
   render () {
+    console.log('render', this.context.filename)
     this.pending = true
     this.worker.postMessage({ type: 'render', context: this.context })
   }

@@ -290,6 +290,7 @@ export default (el, storage) => {
     }
 
     if (state.resizing) {
+      app.dispatchEvent(new CustomEvent('save', { detail: state.resizing }))
       state.resizing = null
       e.preventDefault()
       updateCursorMode()
@@ -448,10 +449,12 @@ export default (el, storage) => {
   // an out of focus window to bring it to focus, and therefore prevent
   // unwanted paints
   const handleWindowBlur = e => {
+    state.keys = {}
     state.background = true
   }
 
   const handleWindowFocus = e => {
+    state.keys = {}
     setTimeout(() => state.background = false, 300)
   }
 

@@ -1,0 +1,68 @@
+{
+  "_from": "github:opendsp/studio",
+  "_id": "studio@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/studio",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "studio@github:opendsp/studio",
+    "name": "studio",
+    "escapedName": "studio",
+    "rawSpec": "github:opendsp/studio",
+    "saveSpec": "github:opendsp/studio",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:opendsp/studio#91ab10d2d434fa279ac329c255324deee1af6cac",
+  "_spec": "studio@github:opendsp/studio",
+  "_where": "/home/stagas/work/stagas/tracks",
+  "author": {
+    "name": "stagas"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "additive-osc": "github:opendsp/additive-osc",
+    "allpass": "github:opendsp/allpass",
+    "biquad": "github:opendsp/biquad",
+    "bitter": "github:opendsp/bitter",
+    "chord": "github:opendsp/chord",
+    "chords": "github:opendsp/chords",
+    "chords-of": "github:opendsp/chords-of",
+    "combfilter": "github:opendsp/combfilter",
+    "decimator": "github:opendsp/decimator",
+    "delay": "github:opendsp/delay",
+    "diodefilter": "github:opendsp/diodefilter",
+    "envelope": "github:opendsp/envelope",
+    "filter": "github:opendsp/filter",
+    "freeverb": "github:opendsp/freeverb",
+    "korg35lpf": "github:opendsp/korg35lpf",
+    "moogladder": "github:opendsp/moogladder",
+    "nopop": "github:opendsp/nopop",
+    "note": "github:opendsp/note",
+    "osc": "github:opendsp/osc",
+    "sampler": "github:opendsp/sampler",
+    "scales": "github:opendsp/scales",
+    "softclip": "github:opendsp/softclip",
+    "step": "github:opendsp/step",
+    "wavetable-osc": "github:opendsp/wavetable-osc"
+  },
+  "deprecated": false,
+  "description": "all of opendsp modules",
+  "devDependencies": {
+    "babel-preset-latest": "^6.16.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.1.0"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "name": "studio",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

@@ -1,0 +1,49 @@
+{
+  "_from": "github:opendsp/freeverb",
+  "_id": "freeverb@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/freeverb",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "freeverb@github:opendsp/freeverb",
+    "name": "freeverb",
+    "escapedName": "freeverb",
+    "rawSpec": "github:opendsp/freeverb",
+    "saveSpec": "github:opendsp/freeverb",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/freeverb#08632d11dc4132e13ee0e993e3e42b4e9daeabcb",
+  "_spec": "freeverb@github:opendsp/freeverb",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/freeverb/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "allpass": "github:opendsp/allpass#1.0.0",
+    "combfilter": "github:opendsp/combfilter#1.0.0"
+  },
+  "deprecated": false,
+  "description": "freeverb reverb",
+  "homepage": "https://github.com/opendsp/freeverb#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "freeverb",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/freeverb.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

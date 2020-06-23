@@ -1,8 +1,6 @@
 export default class Context {
   constructor (data) {
     this.n = 0
-    this.meta = {}
-    this.setup = {}
     this.put(data)
   }
 

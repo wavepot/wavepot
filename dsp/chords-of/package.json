@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/chords-of",
+  "_id": "chords-of@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/chords-of",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "chords-of@github:opendsp/chords-of",
+    "name": "chords-of",
+    "escapedName": "chords-of",
+    "rawSpec": "github:opendsp/chords-of",
+    "saveSpec": "github:opendsp/chords-of",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/chords-of#e0404a344d0df390cf63f2e924e3a7b9c62fde77",
+  "_spec": "chords-of@github:opendsp/chords-of",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/chords-of/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "generate all chords of a scale",
+  "homepage": "https://github.com/opendsp/chords-of#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "chords-of",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/chords-of.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

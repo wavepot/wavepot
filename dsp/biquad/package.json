@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/biquad",
+  "_id": "biquad@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/biquad",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "biquad@github:opendsp/biquad",
+    "name": "biquad",
+    "escapedName": "biquad",
+    "rawSpec": "github:opendsp/biquad",
+    "saveSpec": "github:opendsp/biquad",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/biquad#0440dbb057212543e0065460438a772624a58296",
+  "_spec": "biquad@github:opendsp/biquad",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/biquad/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "biquad filter",
+  "homepage": "https://github.com/opendsp/biquad#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "biquad",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/biquad.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

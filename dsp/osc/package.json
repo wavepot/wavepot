@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/osc",
+  "_id": "osc@2.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/osc",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "osc@github:opendsp/osc",
+    "name": "osc",
+    "escapedName": "osc",
+    "rawSpec": "github:opendsp/osc",
+    "saveSpec": "github:opendsp/osc",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/osc#e5cb9d1b98183953784f0d613936d523daa7bdbf",
+  "_spec": "osc@github:opendsp/osc",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/osc/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "oscillators",
+  "homepage": "https://github.com/opendsp/osc#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "osc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/osc.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "2.0.0"
+}

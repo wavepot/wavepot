@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/wavetable-osc",
+  "_id": "wavetable-osc@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/wavetable-osc",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "wavetable-osc@github:opendsp/wavetable-osc",
+    "name": "wavetable-osc",
+    "escapedName": "wavetable-osc",
+    "rawSpec": "github:opendsp/wavetable-osc",
+    "saveSpec": "github:opendsp/wavetable-osc",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/wavetable-osc#216f18ff04dd23e64a1008c7bd9d66c6a9763dff",
+  "_spec": "wavetable-osc@github:opendsp/wavetable-osc",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/wavetable-osc/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "wavetable oscillator",
+  "homepage": "https://github.com/opendsp/wavetable-osc#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "wavetable-osc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/wavetable-osc.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

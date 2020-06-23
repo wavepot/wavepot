@@ -1,0 +1,51 @@
+{
+  "_from": "github:opendsp/moogladder",
+  "_id": "moogladder@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/moogladder",
+  "_phantomChildren": {
+    "prewarp": "1.0.0"
+  },
+  "_requested": {
+    "type": "git",
+    "raw": "moogladder@github:opendsp/moogladder",
+    "name": "moogladder",
+    "escapedName": "moogladder",
+    "rawSpec": "github:opendsp/moogladder",
+    "saveSpec": "github:opendsp/moogladder",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/moogladder#4c9456da075b7cc79e513e45638006caee97eb38",
+  "_spec": "moogladder@github:opendsp/moogladder",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/moogladder/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "filter": "github:opendsp/filter#2.0.0",
+    "prewarp": "github:opendsp/prewarp#1.0.0"
+  },
+  "deprecated": false,
+  "description": "moogladder filter",
+  "homepage": "https://github.com/opendsp/moogladder#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "moogladder",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/moogladder.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

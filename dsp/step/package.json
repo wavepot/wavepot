@@ -1,0 +1,52 @@
+{
+  "_from": "github:opendsp/step",
+  "_id": "step@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/step",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "step@github:opendsp/step",
+    "name": "step",
+    "escapedName": "step",
+    "rawSpec": "github:opendsp/step",
+    "saveSpec": "github:opendsp/step",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/step#c00f1f345fb9345a14aba4149473930e7126d964",
+  "_spec": "step@github:opendsp/step",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/step/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "step trigger",
+  "devDependencies": {
+    "studio": "github:opendsp/studio"
+  },
+  "homepage": "https://github.com/opendsp/step#readme",
+  "keywords": [
+    "sequencing",
+    "audio"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "step",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/step.git"
+  },
+  "scripts": {
+    "test": "wavepot -b test.js"
+  },
+  "version": "1.0.0"
+}

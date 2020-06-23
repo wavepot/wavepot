@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/bitter",
+  "_id": "bitter@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/bitter",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "bitter@github:opendsp/bitter",
+    "name": "bitter",
+    "escapedName": "bitter",
+    "rawSpec": "github:opendsp/bitter",
+    "saveSpec": "github:opendsp/bitter",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/bitter#21c51c40dd5eaeba0677a31e520ed7620d63572f",
+  "_spec": "bitter@github:opendsp/bitter",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "potasmic"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/bitter/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "bit depth reduction",
+  "homepage": "https://github.com/opendsp/bitter#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "bitter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/bitter.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

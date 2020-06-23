@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/sampler",
+  "_id": "sampler@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/sampler",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "sampler@github:opendsp/sampler",
+    "name": "sampler",
+    "escapedName": "sampler",
+    "rawSpec": "github:opendsp/sampler",
+    "saveSpec": "github:opendsp/sampler",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/sampler#fdf66a6ea9f6714378df6e6133c378cc8749643a",
+  "_spec": "sampler@github:opendsp/sampler",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/sampler/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "sampler",
+  "homepage": "https://github.com/opendsp/sampler#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "sampler",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/sampler.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

@@ -1,5 +1,5 @@
 import Pool from '../lib/pool.js'
-import LoopBuffer from '../loop-buffer.js'
+import LoopBuffer from './buffer.js'
 
 export const contexts = new WeakMap
 

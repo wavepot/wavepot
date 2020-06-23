@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/additive-osc",
+  "_id": "additive-osc@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/additive-osc",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "additive-osc@github:opendsp/additive-osc",
+    "name": "additive-osc",
+    "escapedName": "additive-osc",
+    "rawSpec": "github:opendsp/additive-osc",
+    "saveSpec": "github:opendsp/additive-osc",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/additive-osc#0d521e82f1b44a2861733eb4273f955a54a02b72",
+  "_spec": "additive-osc@github:opendsp/additive-osc",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "potasmic"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/additive-osc/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "additive oscillators",
+  "homepage": "https://github.com/opendsp/additive-osc#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "additive-osc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/additive-osc.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

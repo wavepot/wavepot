@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/note",
+  "_id": "note@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/note",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "note@github:opendsp/note",
+    "name": "note",
+    "escapedName": "note",
+    "rawSpec": "github:opendsp/note",
+    "saveSpec": "github:opendsp/note",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/note#a66590ad44404ffe36bb7f0ab07ea59fe03aedb2",
+  "_spec": "note@github:opendsp/note",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/note/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "note frequency generator",
+  "homepage": "https://github.com/opendsp/note#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "note",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/note.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

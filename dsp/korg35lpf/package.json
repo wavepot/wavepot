@@ -1,0 +1,51 @@
+{
+  "_from": "github:opendsp/korg35lpf",
+  "_id": "korg35lpf@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/korg35lpf",
+  "_phantomChildren": {
+    "prewarp": "1.0.0"
+  },
+  "_requested": {
+    "type": "git",
+    "raw": "korg35lpf@github:opendsp/korg35lpf",
+    "name": "korg35lpf",
+    "escapedName": "korg35lpf",
+    "rawSpec": "github:opendsp/korg35lpf",
+    "saveSpec": "github:opendsp/korg35lpf",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/korg35lpf#a9cd292f204cf712de25f7a227376df460d147b9",
+  "_spec": "korg35lpf@github:opendsp/korg35lpf",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/korg35lpf/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "filter": "github:opendsp/filter#2.0.0",
+    "prewarp": "github:opendsp/prewarp#1.0.0"
+  },
+  "deprecated": false,
+  "description": "korg35 low pass filter",
+  "homepage": "https://github.com/opendsp/korg35lpf#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "korg35lpf",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/korg35lpf.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

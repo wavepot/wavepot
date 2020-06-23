@@ -1,7 +1,7 @@
 import Sequencer from './sequencer/sequencer.js'
 import Clock from './clock.js'
 import DynamicCache from './dynamic-cache.js'
-import LoopScriptNode from './loop-script/node.js'
+import ScriptNode from './script/node.js'
 import singleGesture from './lib/single-gesture.js'
 import readTracks from './read-tracks.js'
 
@@ -29,6 +29,7 @@ export default class Wavepot {
     this.el = opts.el
     this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/javascript' })
     this.nodes = new Map
+    this.currentlyPlayingNodes = new Map
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
     singleGesture(() => this.start())
@@ -87,20 +88,27 @@ export default class Wavepot {
         this.scheduleNextNodes()
       } else {
         this.clock.stop()
+        for (const node of this.currentlyPlayingNodes.values()) {
+          node.stop()
+        }
         for (const node of this.nodes.values()) {
-          node.pause(0)
+          node.stop()
         }
       }
     })
     this.sequencer.addEventListener('pause', () => {
       this.clock.stop()
+      for (const node of this.currentlyPlayingNodes.values()) {
+        node.stop()
+      }
       for (const node of this.nodes.values()) {
-        node.pause(0)
+        node.stop()
       }
     })
   }
 
   onbar () {
+    this.currentlyPlayingNodes = new Map([...this.nodes])
     this.advancePlaybackPosition()
     this.scheduleNextNodes()
   }
@@ -117,31 +125,42 @@ export default class Wavepot {
   }
 
   async scheduleNextNodes () {
-    const nodes = await Promise.all(
-      this
-        .getNextPlaybackTiles()
-        .map(tile => this.getNode(tile))
-    )
-
-    nodes.forEach(node => {
-      node.start('bar')
-      node.pause('bar', 1)
-    })
+    this
+      .getNextPlaybackTiles()
+      .forEach(tile => this.playNode(tile))
   }
 
-  async getNode (tile) {
-    const node = this.nodes.get(tile.id)
-    if (node) return node
-    return await this.updateNode(tile)
+  async playNode (tile) {
+    const [leftMost, rightMost] = this.getPlaybackRange()
+    let node = this.nodes.get(tile)
+    if (!node) node = await this.updateNode(tile)
+    const offset = tile.pos.x < leftMost ? leftMost - tile.pos.x : 0
+    const duration = tile.pos.x + tile.length > rightMost
+      ? tile.length - (tile.pos.x + tile.length - rightMost - offset) + 1
+      : tile.length
+    node.start(
+      'bar',
+      offset,
+      duration
+    )
   }
 
   async updateNode (tile) {
     const filename = await this.saveEditor(tile.instance.editor)
     const methods = await readTracks(filename)
-    const node = new LoopScriptNode(filename, methods.default, { bars: tile.length })
+    if (!methods.default) return
+    console.log('rendering', filename, 'bars', tile.length)
+    const node = new ScriptNode(
+      this.audioContext,
+      filename,
+      methods.default,
+      this.clock.bpm,
+      tile.length
+    )
+    node.id = tile.id
     node.connect(this.audioContext.destination)
-    node.setBpm(this.clock.bpm)
-    this.nodes.set(tile.id, node)
+    await node.render()
+    this.nodes.set(tile, node)
     return node
   }
 
@@ -166,15 +185,20 @@ export default class Wavepot {
   }
 
   advancePlaybackPosition () {
-    this.playingPosition = this.getNextPlaybackPosition()
     this.sequencer.highlightColumn(this.playingPosition)
+    this.playingPosition = this.getNextPlaybackPosition()
   }
 
   getNextPlaybackTiles () {
-    const x = this.getNextPlaybackPosition()
+    const [leftMost, rightMost] = this.getPlaybackRange()
+    const x = this.playingPosition
     const { grid } = this.sequencer
     return [...new Map(grid.getAudibleSquares()
-      .filter(([pos]) => grid.hashToPos(pos).x === x)).values()]
+      .filter(([pos, tile]) =>
+        (grid.hashToPos(pos).x === x &&
+        x === tile.pos.x) ||
+        tile.pos.x < leftMost && x === leftMost
+      )).values()]
   }
 
   async saveEditor (editor) {

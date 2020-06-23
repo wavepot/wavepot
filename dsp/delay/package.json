@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/delay",
+  "_id": "delay@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/delay",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "delay@github:opendsp/delay",
+    "name": "delay",
+    "escapedName": "delay",
+    "rawSpec": "github:opendsp/delay",
+    "saveSpec": "github:opendsp/delay",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/delay#09e84c29472dd2b9dc94b0f20f57d8af84ac7a26",
+  "_spec": "delay@github:opendsp/delay",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/delay/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "delay",
+  "homepage": "https://github.com/opendsp/delay#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "delay",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/delay.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

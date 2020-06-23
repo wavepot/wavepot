@@ -1,0 +1,49 @@
+{
+  "_from": "github:opendsp/prewarp#1.0.0",
+  "_id": "prewarp@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/prewarp",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "prewarp@github:opendsp/prewarp#1.0.0",
+    "name": "prewarp",
+    "escapedName": "prewarp",
+    "rawSpec": "github:opendsp/prewarp#1.0.0",
+    "saveSpec": "github:opendsp/prewarp#1.0.0",
+    "fetchSpec": null,
+    "gitCommittish": "1.0.0"
+  },
+  "_requiredBy": [
+    "/filter",
+    "/korg35lpf",
+    "/korg35lpf/filter",
+    "/moogladder",
+    "/moogladder/filter"
+  ],
+  "_resolved": "github:opendsp/prewarp#1b8cbaa9ecd9048f42c0eb4f35d8e0f4e3911f78",
+  "_spec": "prewarp@github:opendsp/prewarp#1.0.0",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/filter",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/prewarp/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "prewarp",
+  "homepage": "https://github.com/opendsp/prewarp#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "prewarp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/prewarp.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

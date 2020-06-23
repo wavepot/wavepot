@@ -1,0 +1,45 @@
+{
+  "_from": "github:stagas/configurable",
+  "_id": "configurable@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/configurable",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "configurable@github:stagas/configurable",
+    "name": "configurable",
+    "escapedName": "configurable",
+    "rawSpec": "github:stagas/configurable",
+    "saveSpec": "github:stagas/configurable",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:stagas/configurable#58c0905f3bc49dfeaa057c960e7b55aae6c1ebee",
+  "_spec": "configurable@github:stagas/configurable",
+  "_where": "/home/stagas/work/stagas/tracks",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/stagas/configurable/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "fluent property setters",
+  "homepage": "https://github.com/stagas/configurable#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "configurable",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stagas/configurable.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

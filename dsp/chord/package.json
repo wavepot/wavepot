@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/chord",
+  "_id": "chord@2.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/chord",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "chord@github:opendsp/chord",
+    "name": "chord",
+    "escapedName": "chord",
+    "rawSpec": "github:opendsp/chord",
+    "saveSpec": "github:opendsp/chord",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/chord#d035fc9632393d09220baef64e57525aaa1df640",
+  "_spec": "chord@github:opendsp/chord",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/stagas/chord/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "chord player",
+  "homepage": "https://github.com/stagas/chord#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "chord",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stagas/chord.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "2.0.0"
+}

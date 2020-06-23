@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/chords",
+  "_id": "chords@2.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/chords",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "chords@github:opendsp/chords",
+    "name": "chords",
+    "escapedName": "chords",
+    "rawSpec": "github:opendsp/chords",
+    "saveSpec": "github:opendsp/chords",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/chords#69919e38311a5f5ef01deb80d5fbdf474c525818",
+  "_spec": "chords@github:opendsp/chords",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/stagas/chords/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "chord generator",
+  "homepage": "https://github.com/stagas/chords#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "chords",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stagas/chords.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "2.0.0"
+}

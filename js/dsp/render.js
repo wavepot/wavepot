@@ -1,11 +1,11 @@
 import toFinite from '../lib/to-finite.js'
 
 export default (fn, context) => {
-  const { output, length, meta, setup } = context
+  const { output, length } = context
 
-  meta.renderStartTime = performance.now() / 1000
+  context.renderStartTime = performance.now() / 1000
 
-  if (setup?.handle) {
+  if (context.handle) {
     fn(context)
     context.n += length // increment sample to one length
   } else {
@@ -16,7 +16,7 @@ export default (fn, context) => {
     }
   }
 
-  meta.renderDuration = performance.now() / 1000 - meta.renderStartTime
+  context.renderDuration = performance.now() / 1000 - context.renderStartTime
 }
 
 const renderMono = (fn, context) => {

@@ -1,0 +1,45 @@
+{
+  "_from": "github:opendsp/nopop",
+  "_id": "nopop@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/nopop",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "nopop@github:opendsp/nopop",
+    "name": "nopop",
+    "escapedName": "nopop",
+    "rawSpec": "github:opendsp/nopop",
+    "saveSpec": "github:opendsp/nopop",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/nopop#f50e16aeb57bb824b11003c6e7b086d2a95f64e7",
+  "_spec": "nopop@github:opendsp/nopop",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/stagas/nopop/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "reduce pops n clicks",
+  "homepage": "https://github.com/stagas/nopop#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "nopop",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stagas/nopop.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

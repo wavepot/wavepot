@@ -1,0 +1,48 @@
+{
+  "_from": "github:opendsp/diodefilter",
+  "_id": "diodefilter@1.0.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/diodefilter",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "diodefilter@github:opendsp/diodefilter",
+    "name": "diodefilter",
+    "escapedName": "diodefilter",
+    "rawSpec": "github:opendsp/diodefilter",
+    "saveSpec": "github:opendsp/diodefilter",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/studio"
+  ],
+  "_resolved": "github:opendsp/diodefilter#9fb8410ba9c9efd9053fb7aa3a21707f1e2d0926",
+  "_spec": "diodefilter@github:opendsp/diodefilter",
+  "_where": "/home/stagas/work/stagas/tracks/node_modules/studio",
+  "author": {
+    "name": "stagas"
+  },
+  "bugs": {
+    "url": "https://github.com/opendsp/diodefilter/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "softclip": "github:opendsp/softclip#1.0.0"
+  },
+  "deprecated": false,
+  "description": "diode filter",
+  "homepage": "https://github.com/opendsp/diodefilter#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "name": "diodefilter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendsp/diodefilter.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}
