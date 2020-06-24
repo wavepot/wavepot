@@ -2,13 +2,13 @@ import toFinite from '../lib/to-finite.js'
 import Context from './context.js'
 import render from './render.js'
 
-const worker = {
+const worker = self.worker = {
   fn: null,
 
   callbacks: {},
 
-  callback ({ callback }) {
-    this.callbacks[callback.id](callback.data)
+  callback ({ id, data }) {
+    this.callbacks[id](data)
   },
 
   async setup ({ context }) {

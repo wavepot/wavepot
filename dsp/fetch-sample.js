@@ -1,6 +1,6 @@
 export default url => {
   return new Promise(resolve => {
-    self.onfetch[url] = resolve
-    self.postMessage({ fetch: url })
+    self.worker.callbacks[url] = resolve
+    self.postMessage({ type: 'fetchsample', url })
   })
 }

@@ -2,6 +2,8 @@ import Clock from '../clock.js'
 import Context from '../dsp/context.js'
 import bufferPool from './buffer-pool.js'
 
+const samples = {}
+
 export default class ScriptSource {
   constructor (audioContext, filename, method, bpm, bars) {
     this.context = this.audioContext = audioContext
@@ -30,7 +32,6 @@ export default class ScriptSource {
     try { this.worker.terminate() } catch {}
     this.clock = null
     this.worker = null
-    this.worker.context = null
   }
 
   setup () {
@@ -81,5 +82,18 @@ export default class ScriptSource {
   onrender ({ context }) {
     this.worker.context.put(context)
     this.worker.renderResolve(context.output)
+  }
+
+  async onfetchsample ({ url }) {
+    const path = '.' === url[0]
+      ? url.split('/').slice(1,-1).join('/') + '/' + encodeURIComponent(url.split('/').pop())
+      : url
+
+    const sample = samples[url] = samples[url] ??
+      (await this.audioContext.decodeAudioData(
+        await (await fetch(path)).arrayBuffer()
+      )).getChannelData(0)
+
+    this.worker.postMessage({ type: 'callback', id: url, data: sample })
   }
 }
