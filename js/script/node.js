@@ -4,9 +4,26 @@ export default class ScriptNode {
   constructor (audioContext, filename, method, bpm, bars) {
     this.context = this.audioContext = audioContext
     this.output = this.audioContext.createGain()
-    this.script = new ScriptSource(audioContext, filename, method, bpm, bars)
-    this.clock = this.script.clock
     this.buffers = []
+    this.update(filename, method, bpm, bars)
+  }
+
+  destroy () {
+    this.script.destroy()
+    this.buffers = null
+    this.clock = null
+    if (!this.bufferSource) {
+      this.output.disconnect()
+      this.output = null
+    }
+  }
+
+  update (filename, method, bpm, bars) {
+    if (this.script) {
+      this.script.destroy()
+    }
+    this.script = new ScriptSource(this.audioContext, filename, method, bpm, bars)
+    this.clock = this.script.clock
   }
 
   setup () {
@@ -39,11 +56,23 @@ export default class ScriptNode {
     ).bar
 
     const oldBufferSource = this.bufferSource
-    this.bufferSource = this.audioContext.createBufferSource()
-    this.bufferSource.buffer = this.buffers[bar]
-    this.bufferSource.connect(this.output)
-    this.bufferSource.start(syncTime)
-    if (oldBufferSource) oldBufferSource.stop(syncTime)
+    const source = this.bufferSource = this.audioContext.createBufferSource()
+    source.buffer = this.buffers[bar]
+    source.connect(this.output)
+    source.start(syncTime)
+    source.onended = () => {
+      source.disconnect()
+      if (this.bufferSource === source) {
+        this.bufferSource = null
+        if (!this.buffers) {
+          this.output.disconnect()
+          this.output = null
+        }
+      }
+    }
+    if (oldBufferSource) {
+      oldBufferSource.stop(syncTime)
+    }
     return syncTime
   }
 

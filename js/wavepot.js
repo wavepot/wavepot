@@ -170,18 +170,33 @@ export default class Wavepot {
     const filename = await this.saveEditor(tile.instance.editor)
     const methods = await readTracks(filename)
     if (!methods.default) return
+
     console.log('updating node:', filename)
-    const node = new ScriptNode(
-      this.audioContext,
-      filename,
-      methods.default,
-      this.clock.bpm,
-      tile.length
-    )
+
+    let node = this.nodes.get(tile)
+
+    if (node) {
+      node.update(
+        filename,
+        methods.default,
+        this.clock.bpm,
+        tile.length
+      )
+    } else {
+      node = new ScriptNode(
+        this.audioContext,
+        filename,
+        methods.default,
+        this.clock.bpm,
+        tile.length
+      )
+      node.connect(this.audioContext.destination)
+    }
+
     node.tile = tile
-    node.connect(this.audioContext.destination)
     await node.setup()
     this.nodes.set(tile, node)
+
     return node
   }
 
