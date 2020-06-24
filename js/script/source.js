@@ -1,5 +1,6 @@
 import Clock from '../clock.js'
 import Context from '../dsp/context.js'
+import bufferPool from './buffer-pool.js'
 
 export default class ScriptSource {
   constructor (audioContext, filename, method, bpm, bars) {
@@ -9,7 +10,7 @@ export default class ScriptSource {
     this.worker.onerror = error => {
       console.error('ScriptSource: Worker failed')
       console.dir(error)
-      this.close()
+      this.destroy()
     }
     this.clock = new Clock().connect(this.audioContext.destination)
     this.clock.setBpm(bpm)
@@ -64,22 +65,21 @@ export default class ScriptSource {
     //   sampleRate
     // )
 
-    const sharedBuffer = Array(channels).fill().map(() =>
-      new SharedArrayBuffer(
-        length * Float32Array.BYTES_PER_ELEMENT
-      )
-    )
-
-    const output = Array(channels).fill().map((_, i) =>
-      new Float32Array(sharedBuffer[i], 0, length)
-    )
+    const pool = bufferPool(this.audioContext, channels, length)
+    const buffer = pool.get()
+    const { output } = buffer
 
     this.worker.context.n = bar * length
     this.worker.context.input = input
     this.worker.context.output = output
 
     return new Promise(resolve => {
-      this.worker.renderResolve = resolve
+      this.worker.renderResolve = output => {
+        resolve(output)
+        this.worker.context.input = null
+        this.worker.context.output = null
+        pool.release(buffer)
+      }
       this.worker.postMessage({ type: 'render', context: this.worker.context })
     })
   }
