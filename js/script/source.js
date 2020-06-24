@@ -59,12 +59,6 @@ export default class ScriptSource {
       sampleRate
     } = this.worker.context
 
-    // const audioBuffer = this.audioContext.createBuffer(
-    //   channels,
-    //   length,
-    //   sampleRate
-    // )
-
     const pool = bufferPool(this.audioContext, channels, length)
     const buffer = pool.get()
     const { output } = buffer
@@ -87,17 +81,5 @@ export default class ScriptSource {
   onrender ({ context }) {
     this.worker.context.put(context)
     this.worker.renderResolve(context.output)
-
-    // for (const [i, array] of output.entries()) {
-    //   audioBuffer
-    //     .getChannelData(i)
-    //     .set(array)
-    // }
-
-    // if (this.barIndex === 0) {
-    // }
-    // if (this.barIndex < this.worker.context.bars - 1) {
-      // this.renderNext()
-    // }
   }
 }
