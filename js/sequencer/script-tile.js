@@ -139,24 +139,32 @@ export default class ScriptTile extends Tile {
 
     // if (this.instance.updateId === this.updateId) {
       // this.instance.updateId++
+    const xPos = Math.max(this.pos.x, -this.grid.shift.x)
+    const rightCut = (xPos - this.pos.x) * this.grid.zoom
+    // console.log(rightCut)
 
-      const larger = Math.max(this.grid.screen.width, this.grid.screen.height)
+    const larger = Math.max(this.grid.screen.width, this.grid.screen.height)
 
-      this.scale = 1
-      // TODO: do this on zoom rest instead
-      if (floorZoom - ZOOM_THRESHOLD > larger) {
-        this.scale = larger / (floorZoom - ZOOM_THRESHOLD)
-      }
+    this.scale = 1
+    // TODO: do this on zoom rest instead
+    if (floorZoom - ZOOM_THRESHOLD > larger) {
+      this.scale = larger / (floorZoom - ZOOM_THRESHOLD)
+    }
 
-      this.instance.editor.setSize(
-        floorZoom * this.scale * this.length,
-        floorZoom * this.scale
-      )
+    const newWidth = floorZoom * this.scale * this.length - rightCut
+    const newHeight = floorZoom * this.scale
+    if (newWidth <= 1) return
+
+    const canvasWidth = floorZoom * this.length - rightCut
+    const canvasHeight = floorZoom
+    if (canvasWidth <= 1) return
+
+    this.instance.editor.setSize(newWidth, newHeight)
     // }
     // this.updateId = this.instance.updateId
 
     this.offset = {
-      x: Math.floor(this.grid.zoom * (this.pos.x + this.grid.shift.x)),
+      x: Math.floor(this.grid.zoom * (xPos + this.grid.shift.x)),
       y: Math.floor(this.grid.zoom * (this.pos.y + this.grid.shift.y))
     }
 
@@ -165,8 +173,8 @@ export default class ScriptTile extends Tile {
       this.instance.editor.canvas,
       this.offset.x,
       this.offset.y,
-      floorZoom * this.length,
-      floorZoom
+      canvasWidth,
+      canvasHeight
     )
   }
 }
