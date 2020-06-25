@@ -41,7 +41,7 @@ export default class ScriptSource {
         console.error('ScriptSource: Worker setup timeout')
         console.dir(this.worker.context)
         reject()
-      }, 5000)
+      }, 10000)
       this.worker.setupResolve = resolve
     })
   }

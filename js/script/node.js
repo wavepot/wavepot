@@ -12,6 +12,7 @@ export default class ScriptNode {
     this.script.destroy()
     this.buffers = null
     this.clock = null
+    this.oldBufferSource = null
     if (!this.bufferSource) {
       this.output.disconnect()
       this.output = null
@@ -55,7 +56,7 @@ export default class ScriptNode {
       this.clock.current.time + this.clock.times.bar
     ).bar
 
-    const oldBufferSource = this.bufferSource
+    const oldBufferSource = this.oldBufferSource = this.bufferSource
     const source = this.bufferSource = this.audioContext.createBufferSource()
     source.buffer = this.buffers[bar]
     source.connect(this.output)
@@ -77,7 +78,8 @@ export default class ScriptNode {
   }
 
   stop () {
-    this.bufferSource.stop()
+    this.bufferSource?.stop()
+    this.oldBufferSource?.stop()
   }
 
   connect (destination) {

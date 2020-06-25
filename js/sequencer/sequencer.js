@@ -475,12 +475,6 @@ export default (el, storage) => {
   window.addEventListener('keydown', handleKeyDown, { passive: false })
   window.addEventListener('keyup', handleKeyUp, { passive: false })
 
-  grid.load()
-  grid.saveState()
-  grid.saveTiles()
-  grid.draw()
-  el.appendChild(grid.canvas)
-
   app.highlightColumn = col => {
     state.litColumn = col
     grid.draw()
@@ -505,6 +499,19 @@ export default (el, storage) => {
     window.removeEventListener('keyup', handleKeyUp)
     el.removeChild(grid.canvas)
   }
+
+  grid.load()
+  grid.saveState()
+  grid.saveTiles()
+  grid.draw()
+  el.appendChild(grid.canvas)
+
+  // currently we initialize in sync, but eventually it will be async
+  // so we emit the load event asynchronously for the listeners to
+  // have time to initialize
+  setTimeout(() => {
+    app.dispatchEvent(new CustomEvent('load'))
+  })
 
   return app
 }

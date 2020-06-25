@@ -83,6 +83,7 @@ export default class Wavepot {
     })
     this.sequencer.addEventListener('play', () => {
       this.start()
+      this.playbackRange = this.getPlaybackRange()
       if (!this.clock.started) {
         this.clock.start()
         this.scheduleNextNodes()
@@ -104,6 +105,11 @@ export default class Wavepot {
       for (const node of this.nodes.values()) {
         node.stop()
       }
+    })
+    this.sequencer.addEventListener('load', async () => {
+      console.log('project loading...')
+      await Promise.all([...this.sequencer.editors.values()].map(instance => this.saveEditor(instance.editor)))
+      console.log('cached editors complete')
     })
   }
 
@@ -208,11 +214,12 @@ export default class Wavepot {
     if (!sortedSquares.length) return [-1,-1] // TODO: return null?
     const left = sortedSquares[0].x
     const right = sortedSquares.pop().x
-    return [left, right]
+    const { top, bottom } = grid.getAudibleRange()
+    return { left, top, right, bottom }
   }
 
   getNextPlaybackPosition () {
-    const [left, right] = this.getPlaybackRange()
+    const { left, right } = this.playbackRange
     let x = this.playingPosition + 1
     if (x < left || x > right) {
       x = left
@@ -228,7 +235,7 @@ export default class Wavepot {
   getNextPlaybackTiles () {
     const x = this.getNextPlaybackPosition()
     const { grid } = this.sequencer
-    return grid.getAudibleSquares()
+    return grid.getAudibleSquares(this.playbackRange)
       .filter(([pos]) => x === grid.hashToPos(pos).x)
       .map(([_, tile]) => tile)
       // bottom first

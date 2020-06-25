@@ -186,31 +186,51 @@ export default class Grid {
     return squares
   }
 
-  getVisibleSquares () {
+  getVisibleSquares (range = this.getVisibleRange()) {
     return [...this.squares]
-      .filter(([pos]) => this.isVisiblePos(this.hashToPos(pos)))
+      .filter(([pos]) => this.isVisiblePos(this.hashToPos(pos), range))
   }
 
-  getAudibleSquares () {
+  getAudibleSquares (range = this.getAudibleRange()) {
     return [...this.squares]
-      .filter(([pos]) => this.isAudiblePos(this.hashToPos(pos)))
+      .filter(([pos]) => this.isAudiblePos(this.hashToPos(pos), range))
   }
 
-  isVisiblePos ({ x, y }) {
+  getVisibleRange () {
+    return {
+      left: Math.floor(-this.shift.x),
+      top: Math.floor(-this.shift.y),
+      right: Math.ceil(-this.shift.x + this.size.width),
+      bottom: Math.ceil(-this.shift.y + this.size.height)
+    }
+  }
+
+  getAudibleRange () {
+    return {
+      left: Math.ceil(-this.shift.x),
+      top: Math.ceil(-this.shift.y),
+      right: Math.floor(-this.shift.x + this.size.width) - Math.min(1, this.size.width),
+      bottom: Math.floor(-this.shift.y + this.size.height) - Math.min(1, this.size.height)
+    }
+  }
+
+  isVisiblePos ({ x, y }, { left, top, right, bottom }) {
     return (
-      x >= Math.floor(-this.shift.x) &&
-      y >= Math.floor(-this.shift.y) &&
-      x < Math.ceil(-this.shift.x + this.size.width) &&
-      y < Math.ceil(-this.shift.y + this.size.height)
+      x >= left &&
+      y >= top &&
+      x < right &&
+      y < bottom
     )
   }
 
-  isAudiblePos ({ x, y }) {
+  isAudiblePos ({ x, y }, { left, top, right, bottom }) {
     return (
-      x >= Math.ceil(-this.shift.x) &&
-      y >= Math.ceil(-this.shift.y) &&
-      Math.floor(x + Math.min(1, this.size.width)) <= Math.floor(-this.shift.x + this.size.width) &&
-      Math.floor(y + Math.min(1, this.size.height)) <= Math.floor(-this.shift.y + this.size.height)
+      x >= left &&
+      y >= top &&
+      x <= right &&
+      y <= bottom
+      // Math.floor(x + Math.min(1, this.size.width)) <= right &&
+      // Math.floor(y + Math.min(1, this.size.height)) <= bottom
     )
   }
 
