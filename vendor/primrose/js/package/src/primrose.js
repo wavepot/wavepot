@@ -49,7 +49,7 @@ let elementCounter = 0,
     hoveredControl = null,
     publicControls = [];
 
-const wheelScrollSpeed = 4,
+const wheelScrollSpeed = 3,
     vScrollWidth = 2,
     scrollScale = isFirefox ? 3 : 100,
     optionDefaults = Object.freeze({
@@ -1279,7 +1279,8 @@ export class Primrose extends EventTarget {
                     && !evt.altKey
                     && !evt.shiftKey
                     && !evt.metaKey) {
-                    const dy = Math.floor(evt.deltaY * wheelScrollSpeed / scrollScale);
+                    const sign = Math.sign(evt.deltaY)
+                    const dy = sign * Math.max(1, Math.round(Math.abs(evt.deltaY) * wheelScrollSpeed / scrollScale));
                     if (!this.scrollBy(0, dy) || focused) {
                         evt.preventDefault();
                     }
