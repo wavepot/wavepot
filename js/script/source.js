@@ -10,7 +10,7 @@ export default class ScriptSource {
     this.worker = new Worker('/js/dsp/worker.js', { type: 'module' })
     this.worker.onmessage = ({ data }) => this['on' + data.type](data)
     this.worker.onerror = error => {
-      console.error('ScriptSource: Worker failed')
+      console.error('[ScriptSource] Worker failed: ' + error.message)
       console.dir(error)
       this.destroy()
     }
