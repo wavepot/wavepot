@@ -22,11 +22,16 @@
 function Oscillator({ sampleRate }, type, size, alias, phase = 0){
   if (!(this instanceof Oscillator)) return new Oscillator({ sampleRate }, type, size, alias, phase);
   this.size = size || sampleRate;
+  this.phase = phase;
   this.pos = phase * this.size;
   this.coeff = this.size / sampleRate;
   this.table = new Float32Array(this.size);
   this.alias = alias === false ? false : true;
   this.build(type);
+}
+
+Oscillator.prototype.reset = function() {
+  this.pos = this.phase * this.size
 }
 
 /**
@@ -121,5 +126,7 @@ Oscillator.prototype.play = function(freq){
 
 export default function factory(context, type, size, alias, phase){
   var osc = Oscillator(context, type, size, alias, phase);
-  return osc.play.bind(osc);
+  var play = osc.play.bind(osc)
+  play.reset = osc.reset.bind(osc)
+  return play;
 }
