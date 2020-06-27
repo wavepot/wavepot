@@ -210,7 +210,12 @@ export default class Grid {
     const audibleSquares = this.getAudibleSquares()
       .map(([pos]) => this.hashToPos(pos))
 
-    if (!audibleSquares.length) return
+    if (!audibleSquares.length) return {
+      left: Math.ceil(-this.shift.x),
+      top: Math.ceil(-this.shift.y),
+      right: Math.ceil(-this.shift.x),
+      bottom: Math.ceil(-this.shift.y)
+    }
 
     const horiz = audibleSquares.slice()
       .sort((a, b) => a.x > b.x ? 1 : a.x < b.x ? -1 : 0)
