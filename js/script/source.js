@@ -10,7 +10,7 @@ export default class ScriptSource {
     this.worker = new Worker('/js/dsp/worker.js', { type: 'module' })
     this.worker.onmessage = ({ data }) => this['on' + data.type](data)
     this.worker.onerror = error => {
-      console.error('[ScriptSource] Worker failed: ' + error.message)
+      console.error('[ScriptSource] Worker failed: ' + error.message + ` ${error.filename} ${error.lineno}`)
       console.dir(error)
       this.destroy()
     }
@@ -65,15 +65,20 @@ export default class ScriptSource {
     const { output } = buffer
 
     this.worker.context.n = bar * length
-    this.worker.context.input = input
+    this.worker.context._input = input
     this.worker.context.output = output
 
     return new Promise(resolve => {
       this.worker.renderResolve = output => {
+        if (input && !this.worker.context.inputAccessed) {
+          for (let i = 0; i < input[0].length; i++) {
+            output[0][i] += input[0][i] // TODO: multi
+          }
+        }
         resolve(output)
-        this.worker.context.input = null
+        this.worker.context._input = null
         this.worker.context.output = null
-        pool.release(buffer)
+        //pool.release(buffer)
       }
       this.worker.postMessage({ type: 'render', context: this.worker.context })
     })

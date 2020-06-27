@@ -8,6 +8,11 @@ export default class Context {
     return (1 + this.n) / this.lengths.beat
   }
 
+  get input () {
+    this.inputAccessed = true
+    return this._input
+  }
+
   put (data) {
     Object.assign(this, data)
   }
