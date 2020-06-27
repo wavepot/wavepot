@@ -122,11 +122,13 @@ export default class ScriptTile extends Tile {
   }
 
   focus () {
+    this.hasFocus = true
     this.instance.editor.focus()
     this.instance.editor.addEventListener('update', this.updateDraw)
   }
 
   blur () {
+    this.hasFocus = false
     this.instance.editor.blur()
     this.instance.editor.removeEventListener('update', this.updateDraw)
     this.draw(false, true)
@@ -148,7 +150,7 @@ export default class ScriptTile extends Tile {
       this.grid.screen.height
     ].join()
 
-    if (drawHash !== this.drawHash) {
+    if (this.hasFocus || drawHash !== this.drawHash) {
       this.drawHash = drawHash
 
       const floorZoom = Math.floor(this.grid.zoom)
