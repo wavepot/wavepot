@@ -91,7 +91,12 @@ export default class ScriptTile extends Tile {
     this.scale = 1
     this.offset = { x: 0, y: 0 }
 
-    this.draw = this.draw.bind(this)
+    this.canvas = document.createElement('canvas')
+    this.ctx = this.canvas.getContext('2d')
+
+    this.drawHash = null
+    this.drawValues = { x: 0, y: 0, width: 0, height: 0 }
+    this.updateDraw = this.draw.bind(this, false, true)
     // this.updateId = this.instance.updateId = this.instance.updateId ?? 0
 
     // this.drawListener = this.draw.bind(this, grid)
@@ -103,7 +108,7 @@ export default class ScriptTile extends Tile {
     //   }
     // }
     // this.instance.addEventListener('update', this.drawDebounce)
-    this.instance.editor.addEventListener('change', this.draw)
+    this.instance.editor.addEventListener('change', this.updateDraw)
   }
 
   toJSON () {
@@ -111,23 +116,23 @@ export default class ScriptTile extends Tile {
   }
 
   destroy () {
-    this.instance.editor.removeEventListener('change', this.draw)
-    this.instance.editor.removeEventListener('update', this.draw)
+    this.instance.editor.removeEventListener('change', this.updateDraw)
+    this.instance.editor.removeEventListener('update', this.updateDraw)
     // this.instance.removeEventListener('update', this.drawDebounce)
   }
 
   focus () {
     this.instance.editor.focus()
-    this.instance.editor.addEventListener('update', this.draw)
+    this.instance.editor.addEventListener('update', this.updateDraw)
   }
 
   blur () {
     this.instance.editor.blur()
-    this.instance.editor.removeEventListener('update', this.draw)
-    this.draw()
+    this.instance.editor.removeEventListener('update', this.updateDraw)
+    this.draw(false, true)
   }
 
-  draw (withSquare) {
+  draw (withSquare, isUpdate) {
     if (withSquare === true) {
       super.draw()
     }
@@ -135,46 +140,79 @@ export default class ScriptTile extends Tile {
     // this.drawMicrotaskScheduled = false
     if (this.grid.zoom < 14) return
 
-    const floorZoom = Math.floor(this.grid.zoom)
+    const drawHash = [
+      this.grid.zoom,
+      this.grid.shift.x,
+      this.grid.shift.y,
+      this.grid.screen.width,
+      this.grid.screen.height
+    ].join()
 
-    // if (this.instance.updateId === this.updateId) {
-      // this.instance.updateId++
-    const xPos = Math.max(this.pos.x, -this.grid.shift.x)
-    const rightCut = (xPos - this.pos.x) * this.grid.zoom
-    // console.log(rightCut)
+    if (drawHash !== this.drawHash) {
+      this.drawHash = drawHash
 
-    const larger = Math.max(this.grid.screen.width, this.grid.screen.height)
+      const floorZoom = Math.floor(this.grid.zoom)
 
-    this.scale = 1
-    // TODO: do this on zoom rest instead
-    if (floorZoom - ZOOM_THRESHOLD > larger) {
-      this.scale = larger / (floorZoom - ZOOM_THRESHOLD)
+      // if (this.instance.updateId === this.updateId) {
+        // this.instance.updateId++
+      const xPos = Math.max(this.pos.x, -this.grid.shift.x)
+      const rightCut = (xPos - this.pos.x) * this.grid.zoom
+      // console.log(rightCut)
+
+      const larger = Math.max(this.grid.screen.width, this.grid.screen.height)
+
+      this.scale = 1
+      // TODO: do this on zoom rest instead
+      if (floorZoom - ZOOM_THRESHOLD > larger) {
+        this.scale = larger / (floorZoom - ZOOM_THRESHOLD)
+      }
+
+      const newWidth = floorZoom * this.scale * this.length - rightCut
+      const newHeight = floorZoom * this.scale
+      if (newWidth <= 1) return
+
+      const canvasWidth = floorZoom * this.length - rightCut
+      const canvasHeight = floorZoom
+      if (canvasWidth <= 1) return
+
+      this.instance.editor.setSize(newWidth, newHeight)
+      this.canvas.width = newWidth
+      this.canvas.height = newHeight
+      // }
+      // this.updateId = this.instance.updateId
+
+      this.offset = {
+        x: Math.floor(this.grid.zoom * (xPos + this.grid.shift.x)),
+        y: Math.floor(this.grid.zoom * (this.pos.y + this.grid.shift.y))
+      }
+
+      this.drawValues = {
+        x: this.offset.x,
+        y: this.offset.y,
+        width: canvasWidth,
+        height: canvasHeight
+      }
+
+      isUpdate = true
     }
 
-    const newWidth = floorZoom * this.scale * this.length - rightCut
-    const newHeight = floorZoom * this.scale
-    if (newWidth <= 1) return
-
-    const canvasWidth = floorZoom * this.length - rightCut
-    const canvasHeight = floorZoom
-    if (canvasWidth <= 1) return
-
-    this.instance.editor.setSize(newWidth, newHeight)
-    // }
-    // this.updateId = this.instance.updateId
-
-    this.offset = {
-      x: Math.floor(this.grid.zoom * (xPos + this.grid.shift.x)),
-      y: Math.floor(this.grid.zoom * (this.pos.y + this.grid.shift.y))
+    if (isUpdate) {
+      this.ctx.imageSmoothingEnabled = false
+      this.ctx.drawImage(
+        this.instance.editor.canvas,
+        0, 0,
+        this.drawValues.width,
+        this.drawValues.height
+      )
     }
 
     this.grid.ctx.imageSmoothingEnabled = false
     this.grid.ctx.drawImage(
-      this.instance.editor.canvas,
-      this.offset.x,
-      this.offset.y,
-      canvasWidth,
-      canvasHeight
+      this.canvas,
+      this.drawValues.x,
+      this.drawValues.y,
+      this.drawValues.width,
+      this.drawValues.height
     )
   }
 }

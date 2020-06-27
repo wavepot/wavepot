@@ -25,7 +25,7 @@ export default class Grid {
       verse: '#999',
       square: '#000',
       pointer: '#000',
-      lit: '#d2d2d2',
+      lit: '#eee',
       range: '#fff',
       rangebar: '#000',
     }

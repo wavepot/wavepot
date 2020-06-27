@@ -28,8 +28,20 @@ canvas.cursor-grabbing {
   cursor: grabbing;
 }
 
-canvas.cursor-resize {
+canvas.cursor-col-resize {
   cursor: col-resize;
+}
+
+canvas.cursor-row-resize {
+  cursor: row-resize;
+}
+
+canvas.cursor-nwse-resize {
+  cursor: nwse-resize;
+}
+
+canvas.cursor-nesw-resize {
+  cursor: nesw-resize;
 }
 
 canvas.cursor-text {

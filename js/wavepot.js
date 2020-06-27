@@ -95,7 +95,6 @@ export default class Wavepot {
     this.sequencer.addEventListener('play', () => {
       const { grid } = this.sequencer
       this.start()
-      grid.updatePlaybackRange()
       if (!this.clock.started) {
         this.clock.start()
         this.scheduleNextNodes()

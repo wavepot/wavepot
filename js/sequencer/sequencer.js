@@ -74,7 +74,7 @@ export default (el, storage) => {
         if (
           mouse.square.x === tile.pos.x + tile.length - 1 &&
           grid.zoom - (mouse.pos.x - mouse.square.x) * grid.zoom < 15) {
-          grid.canvas.className = 'cursor-resize'
+          grid.canvas.className = 'cursor-col-resize'
         } else if (
           (mouse.pos.y - mouse.square.y) * grid.zoom < 15 &&
           (mouse.square.x === tile.pos.x ? mouse.pos.x - mouse.square.x > .3 : true)) {
@@ -86,6 +86,25 @@ export default (el, storage) => {
         grid.canvas.className = 'cursor-text'
       }
     } else {
+      const { left, top, right, bottom } = grid.playbackRange
+      const ry = Math.round(mouse.pos.y)
+      const rx = Math.round(mouse.pos.x)
+      if ((rx === left && ry === top) || (rx === right + 1 && ry === bottom + 1)) {
+        grid.canvas.className = 'cursor-nwse-resize'
+        return
+      }
+      if ((rx === right + 1 && ry === top) || (rx === left && ry === bottom + 1)) {
+        grid.canvas.className = 'cursor-nesw-resize'
+        return
+      }
+      if (rx === left || rx === right + 1) {
+        grid.canvas.className = 'cursor-col-resize'
+        return
+      }
+      if (ry === top || ry === bottom + 1) {
+        grid.canvas.className = 'cursor-row-resize'
+        return
+      }
       grid.canvas.className = ''
     }
   }
@@ -164,6 +183,12 @@ export default (el, storage) => {
       if (!grid.hasSquare(state.resizing.pos, newLength, state.resizing)) {
         state.brush = grid.setTileLength(state.resizing, newLength)
       }
+      return
+    }
+    if (state.rerange) {
+      mouse.update(mouse.parseEvent(e))
+      Object.assign(grid.playbackRange, state.rerange(mouse.pos))
+      grid.draw()
       return
     }
     if (mouse.down === 1) {
@@ -247,7 +272,7 @@ export default (el, storage) => {
           updateCursorMode()
           return
         }
-        if (grid.canvas.className === 'cursor-resize') {
+        if (grid.canvas.className === 'cursor-col-resize') {
           state.resizing = tile
           return
         }
@@ -257,6 +282,29 @@ export default (el, storage) => {
         }
         // TODO: do something?
       } else {
+        if (grid.canvas.className.includes('resize')) {
+          const { left, top, right, bottom } = grid.playbackRange
+          const rx = Math.round(mouse.pos.x)
+          const ry = Math.round(mouse.pos.y)
+          if (rx === left && ry === top) {
+            state.rerange = pos => ({ left: Math.round(pos.x), top: Math.round(pos.y) })
+          } else if (rx === right + 1 && ry === top) {
+            state.rerange = pos => ({ right: Math.round(pos.x - 1), top: Math.round(pos.y) })
+          } else if (rx === left && ry === bottom + 1) {
+            state.rerange = pos => ({ left: Math.round(pos.x), bottom: Math.round(pos.y - 1) })
+          } else if (rx === right + 1 && ry === bottom + 1) {
+            state.rerange = pos => ({ right: Math.round(pos.x - 1), bottom: Math.round(pos.y - 1) })
+          } else if (rx === left) {
+            state.rerange = pos => ({ left: Math.round(pos.x) })
+          } else if (rx === right + 1) {
+            state.rerange = pos => ({ right: Math.round(pos.x - 1) })
+          } else if (ry === top) {
+            state.rerange = pos => ({ top: Math.round(pos.y) })
+          } else if (ry === bottom + 1) {
+            state.rerange = pos => ({ bottom: Math.round(pos.y - 1) })
+          }
+          return
+        }
         // start drawing on long press
         state.drawingTimeout = setTimeout(() => {
           state.drawing = true
@@ -292,6 +340,13 @@ export default (el, storage) => {
     if (state.resizing) {
       app.dispatchEvent(new CustomEvent('save', { detail: state.resizing }))
       state.resizing = null
+      e.preventDefault()
+      updateCursorMode()
+      return
+    }
+
+    if (state.rerange) {
+      state.rerange = null
       e.preventDefault()
       updateCursorMode()
       return
