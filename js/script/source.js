@@ -71,8 +71,10 @@ export default class ScriptSource {
     return new Promise(resolve => {
       this.worker.renderResolve = output => {
         if (input && !this.worker.context.inputAccessed) {
-          for (let i = 0; i < input[0].length; i++) {
-            output[0][i] += input[0][i] // TODO: multi
+          for (let c = 0; c < this.worker.context.channels; c++) {
+            for (let i = 0; i < input[c].length; i++) {
+              output[c][i] += input[c][i]
+            }
           }
         }
         resolve(output)
