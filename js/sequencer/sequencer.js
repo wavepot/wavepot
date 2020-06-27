@@ -21,7 +21,7 @@ export default (el, storage) => {
         tile.instance.id = id
         tile.instance.editor.addEventListener('change', () => {
           storage.setItem(tile.id, tile.instance.editor.value)
-          app.dispatchEvent(new CustomEvent('change', { detail: tile }))
+          app.dispatchEvent(new CustomEvent('change', { detail: state.focus }))
         })
         editors.set(id, tile.instance)
         return tile
@@ -41,7 +41,7 @@ export default (el, storage) => {
       if (!editors.has(tile.id)) {
         tile.instance.editor.addEventListener('change', () => {
           storage.setItem(tile.id, tile.instance.editor.value)
-          app.dispatchEvent(new CustomEvent('change', { detail: tile }))
+          app.dispatchEvent(new CustomEvent('change', { detail: state.focus }))
         })
         editors.set(tile.id, tile.instance)
         storage.setItem(tile.id, tile.instance.editor.value)
@@ -361,6 +361,11 @@ export default (el, storage) => {
     }
 
     if (keys.Control) {
+      if (keys.l) {
+        e.preventDefault()
+        e.stopPropagation()
+        app.dispatchEvent(new CustomEvent('live'))
+      }
       if (keys.s) {
         e.preventDefault()
         e.stopPropagation()

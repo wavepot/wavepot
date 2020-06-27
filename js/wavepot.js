@@ -35,13 +35,13 @@ export default class Wavepot {
     singleGesture(() => this.start())
     this.createSequencer(localStorage)
     this.playingPosition = -1
+    this.playingNodes = []
+    this.prevPlayingNodes = []
+    this.mode = 'sequencer'
   }
 
   createSequencer (storage) {
     this.sequencer = Sequencer(this.el, storage)
-    this.sequencer.addEventListener('change', ({ detail: editor }) => {
-      // this.saveEditor(editor)
-    })
     this.sequencer.addEventListener('export', ({ detail: fullState }) => {
       const filename = `wavepot-${new Date().toJSON().split('.')[0].replace(/[^0-9]/g, '-')}.json`
       const file = new File([fullState], filename, { type: 'application/json' })
@@ -77,9 +77,22 @@ export default class Wavepot {
       }
       input.click()
     })
+    this.sequencer.addEventListener('live', () => {
+      // TODO: just a toggle for now
+      if (this.mode === 'sequencer') {
+        this.mode = 'live'
+      } else {
+        this.mode = 'sequencer'
+      }
+      console.log('set mode', this.mode)
+    })
     this.sequencer.addEventListener('save', ({ detail: tile }) => {
-      console.log('saving:', tile)
       this.updateNode(tile)
+    })
+    this.sequencer.addEventListener('change', ({ detail: tile }) => {
+      if (this.mode === 'live') {
+        this.updateNode(tile)
+      }
     })
     this.sequencer.addEventListener('play', () => {
       this.start()
@@ -89,22 +102,14 @@ export default class Wavepot {
         this.scheduleNextNodes()
       } else {
         this.clock.stop()
-        for (const node of this.currentlyPlayingNodes.values()) {
-          node.stop()
-        }
-        for (const node of this.nodes.values()) {
-          node.stop()
-        }
+        this.prevPlayingNodes.forEach(node => node.stop())
+        this.playingNodes.forEach(node => node.stop())
       }
     })
     this.sequencer.addEventListener('pause', () => {
       this.clock.stop()
-      for (const node of this.currentlyPlayingNodes.values()) {
-        node.stop()
-      }
-      for (const node of this.nodes.values()) {
-        node.stop()
-      }
+      this.prevPlayingNodes.forEach(node => node.stop())
+      this.playingNodes.forEach(node => node.stop())
     })
     this.sequencer.addEventListener('load', async () => {
       console.log('project loading...')
@@ -128,6 +133,7 @@ export default class Wavepot {
     })
     this.context.destination.addEventListener('bar', this.onbar)
     this.clock.connect(this.context.destination, this.bpm)
+    this.clock.reset()
   }
 
   async scheduleNextNodes () {
@@ -135,7 +141,7 @@ export default class Wavepot {
 
     let prev = null
     let chain = []
-    const chains = []
+    let chains = []
     for (const node of nodes) {
       if (prev && prev.tile.pos.y !== node.tile.pos.y + 1) {
         chains.push(chain)
@@ -146,7 +152,12 @@ export default class Wavepot {
     }
     chains.push(chain)
 
-    chains.filter(chain => chain.length).forEach(chain => this.playChain(chain))
+    chains = await Promise.all(chains.filter(chain => chain.length).map(chain => this.renderChain(chain)))
+
+    const syncTime = this.clock.sync[this.mode === 'sequencer' ? 'bar' : 'beat']
+    this.prevPlayingNodes = this.playingNodes.slice()
+    this.playingNodes.forEach(node => node.stop(syncTime))
+    this.playingNodes = chains.map(chain => chain.node.start(chain.bar, syncTime))
   }
 
   async getNodes (tiles) {
@@ -158,7 +169,7 @@ export default class Wavepot {
     return this.nodes.get(tile) ?? this.updateNode(tile)
   }
 
-  async playChain (chain) {
+  async renderChain (chain) {
     const x = this.getNextPlaybackPosition()
     const last = chain.pop()
 
@@ -169,7 +180,8 @@ export default class Wavepot {
 
     const bar = x - last.tile.pos.x
     await last.render(bar, input)
-    last.start(bar)
+
+    return { bar, node: last } //.start(bar, syncTime)
   }
 
   async updateNode (tile) {
@@ -177,28 +189,14 @@ export default class Wavepot {
     const methods = await readTracks(filename)
     if (!methods.default) return
 
-    console.log('updating node:', filename)
-
-    let node = this.nodes.get(tile)
-
-    if (node) {
-      node.update(
-        filename,
-        methods.default,
-        this.clock.bpm,
-        tile.length
-      )
-    } else {
-      node = new ScriptNode(
-        this.audioContext,
-        filename,
-        methods.default,
-        this.clock.bpm,
-        tile.length
-      )
-      node.connect(this.audioContext.destination)
-    }
-
+    const node = new ScriptNode(
+      this.audioContext,
+      filename,
+      methods.default,
+      this.clock.bpm,
+      tile.length
+    )
+    node.connect(this.audioContext.destination)
     node.tile = tile
     await node.setup()
     this.nodes.set(tile, node)
