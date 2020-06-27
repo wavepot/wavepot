@@ -14,6 +14,7 @@ export default class Grid {
     this.size = { width: 0, height: 0 } // size in squares
     this.shift = { x: 16, y: 8 } // shift in squares
     this.offset = { x: 0, y: 0 } // offset in squares
+    this.playingPosition = -1
     this.zoom = -1
     this.scale = 3
     this.maxScale = 6
@@ -25,6 +26,8 @@ export default class Grid {
       square: '#000',
       pointer: '#000',
       lit: '#d2d2d2',
+      range: '#fff',
+      rangebar: '#000',
     }
     this.resize(true)
   }
@@ -132,9 +135,22 @@ export default class Grid {
     this.ctx.stroke()
   }
 
+  drawPlaybackRange () {
+    if (!this.playbackRange) this.updatePlaybackRange()
+    const { left, top, right, bottom } = this.playbackRange
+    this.ctx.fillStyle = this.colors.range
+    this.ctx.fillRect(
+      Math.floor(this.zoom * (left + this.shift.x)) - 1,
+      Math.floor(this.zoom * (top + this.shift.y)) - 1,
+      Math.round(this.zoom * (right - left + 1)) + 1,
+      Math.round(this.zoom * (bottom - top + 1)) + 1
+    )
+  }
+
   drawGrid () {
-    this.ctx.save()
     this.ctx.lineWidth = Math.min(1, .02 + this.zoom / 55)
+
+    const { left, top, right, bottom } = this.playbackRange
 
     const shift = {
       x: Math.floor(this.shift.x),
@@ -147,11 +163,12 @@ export default class Grid {
     }
 
     for (let x = 0; x < this.size.width; x++) {
-      if (x - shift.x === this.state.litColumn) {
+      if (x - shift.x === this.playingPosition) {
         this.ctx.fillStyle = this.colors.lit
         this.ctx.fillRect(Math.floor(x * this.zoom + offset.x), 0, this.zoom, this.screen.height)
       }
       this.ctx.strokeStyle = this.colors[
+        (x - shift.x === left || x - shift.x === right + 1) ? 'rangebar' :
         (x - shift.x) % 4 === 0
           ? (x - shift.x) % 16 === 0
             ? 'verse'
@@ -163,6 +180,7 @@ export default class Grid {
 
     for (let y = 0; y < this.size.height; y++) {
       this.ctx.strokeStyle = this.colors[
+        (y - shift.y === top || y - shift.y === bottom + 1) ? 'rangebar' :
         (y - shift.y) % 4 === 0
           ? (y - shift.y) % 16 === 0
             ? 'verse'
@@ -171,8 +189,6 @@ export default class Grid {
         ]
       this.drawHorizontalLine(Math.floor(y * this.zoom + offset.y) - .5)
     }
-
-    this.ctx.restore()
   }
 
   drawTiles () {
@@ -184,6 +200,52 @@ export default class Grid {
       }
     })
     return squares
+  }
+
+  updatePlaybackRange () {
+    this.playbackRange = this.getPlaybackRange()
+  }
+
+  getPlaybackRange () {
+    const audibleSquares = this.getAudibleSquares()
+      .map(([pos]) => this.hashToPos(pos))
+
+    if (!audibleSquares.length) return
+
+    const horiz = audibleSquares.slice()
+      .sort((a, b) => a.x > b.x ? 1 : a.x < b.x ? -1 : 0)
+    const left = horiz[0].x
+    const right = horiz.pop().x
+
+    const vert = audibleSquares.slice()
+      .sort((a, b) => a.y > b.y ? 1 : a.y < b.y ? -1 : 0)
+    const top = vert[0].y
+    const bottom = vert.pop().y
+
+    return { left, top, right, bottom }
+  }
+
+  getNextPlaybackTiles () {
+    const x = this.getNextPlaybackPosition()
+    return this.getAudibleSquares(this.playbackRange)
+      .filter(([pos]) => x === this.hashToPos(pos).x)
+      .map(([_, tile]) => tile)
+      // bottom first
+      .sort((b, a) => a.pos.y > b.pos.y ? 1 : a.pos.y < b.pos.y ? -1 : 0)
+  }
+
+  getNextPlaybackPosition () {
+    const { left, right } = this.playbackRange
+    let x = this.playingPosition + 1
+    if (x < left || x > right) {
+      x = left
+    }
+    return x
+  }
+
+  advancePlaybackPosition () {
+    this.playingPosition = this.getNextPlaybackPosition()
+    this.draw()
   }
 
   getVisibleSquares (range = this.getVisibleRange()) {
@@ -307,6 +369,7 @@ export default class Grid {
 
   draw () {
     this.clear()
+    this.drawPlaybackRange()
     this.drawGrid()
     this.drawTiles()
   }

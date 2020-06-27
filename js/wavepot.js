@@ -29,12 +29,10 @@ export default class Wavepot {
     this.el = opts.el
     this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/javascript' })
     this.nodes = new Map
-    this.currentlyPlayingNodes = new Map
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
     singleGesture(() => this.start())
     this.createSequencer(localStorage)
-    this.playingPosition = -1
     this.playingNodes = []
     this.prevPlayingNodes = []
     this.mode = 'sequencer'
@@ -95,8 +93,9 @@ export default class Wavepot {
       }
     })
     this.sequencer.addEventListener('play', () => {
+      const { grid } = this.sequencer
       this.start()
-      this.playbackRange = this.getPlaybackRange()
+      grid.updatePlaybackRange()
       if (!this.clock.started) {
         this.clock.start()
         this.scheduleNextNodes()
@@ -119,8 +118,8 @@ export default class Wavepot {
   }
 
   onbar () {
-    this.currentlyPlayingNodes = new Map([...this.nodes])
-    this.advancePlaybackPosition()
+    const { grid } = this.sequencer
+    grid.advancePlaybackPosition()
     this.scheduleNextNodes()
   }
 
@@ -137,7 +136,8 @@ export default class Wavepot {
   }
 
   async scheduleNextNodes () {
-    const nodes = await this.getNodes(this.getNextPlaybackTiles())
+    const { grid } = this.sequencer
+    const nodes = await this.getNodes(grid.getNextPlaybackTiles())
 
     let prev = null
     let chain = []
@@ -170,7 +170,8 @@ export default class Wavepot {
   }
 
   async renderChain (chain) {
-    const x = this.getNextPlaybackPosition()
+    const { grid } = this.sequencer
+    const x = grid.getNextPlaybackPosition()
     const last = chain.pop()
 
     let input
@@ -202,42 +203,6 @@ export default class Wavepot {
     this.nodes.set(tile, node)
 
     return node
-  }
-
-  getPlaybackRange () {
-    const { grid } = this.sequencer
-    const sortedSquares = grid.getAudibleSquares()
-      .map(([pos]) => grid.hashToPos(pos))
-      .sort((a, b) => a.x > b.x ? 1 : a.x < b.x ? -1 : 0)
-    if (!sortedSquares.length) return [-1,-1] // TODO: return null?
-    const left = sortedSquares[0].x
-    const right = sortedSquares.pop().x
-    const { top, bottom } = grid.getAudibleRange()
-    return { left, top, right, bottom }
-  }
-
-  getNextPlaybackPosition () {
-    const { left, right } = this.playbackRange
-    let x = this.playingPosition + 1
-    if (x < left || x > right) {
-      x = left
-    }
-    return x
-  }
-
-  advancePlaybackPosition () {
-    this.sequencer.highlightColumn(this.playingPosition)
-    this.playingPosition = this.getNextPlaybackPosition()
-  }
-
-  getNextPlaybackTiles () {
-    const x = this.getNextPlaybackPosition()
-    const { grid } = this.sequencer
-    return grid.getAudibleSquares(this.playbackRange)
-      .filter(([pos]) => x === grid.hashToPos(pos).x)
-      .map(([_, tile]) => tile)
-      // bottom first
-      .sort((b, a) => a.pos.y > b.pos.y ? 1 : a.pos.y < b.pos.y ? -1 : 0)
   }
 
   async saveEditor (editor) {
