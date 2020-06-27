@@ -71,9 +71,11 @@ export default class ScriptSource {
     return new Promise(resolve => {
       this.worker.renderResolve = output => {
         if (input && !this.worker.context.inputAccessed) {
-          for (let c = 0; c < this.worker.context.channels; c++) {
-            for (let i = 0; i < input[c].length; i++) {
-              output[c][i] += input[c][i]
+          for (let c = 0; c < Math.max(input.length, output.length); c++) {
+            const channelIn = input[c % input.length]
+            const channelOut = output[c % output.length]
+            for (let i = 0; i < channelIn.length; i++) {
+              channelOut[i] += channelIn[i]
             }
           }
         }
