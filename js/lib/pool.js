@@ -7,8 +7,8 @@ export default class Pool {
 
   get () {
     let item
-    if (this.unused.length > 0) {
-      item = this.unused.pop()
+    if (this.unused.length > 1) {
+      item = this.unused.shift()
     } else {
       item = this.factory()
     }

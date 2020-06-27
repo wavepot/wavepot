@@ -78,7 +78,7 @@ export default class ScriptSource {
         resolve(output)
         this.worker.context._input = null
         this.worker.context.output = null
-        //pool.release(buffer)
+        pool.release(buffer)
       }
       this.worker.postMessage({ type: 'render', context: this.worker.context })
     })
