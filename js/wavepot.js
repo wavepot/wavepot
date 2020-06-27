@@ -1,4 +1,5 @@
 import Sequencer from './sequencer/sequencer.js'
+import Library from './library.js'
 import Clock from './clock.js'
 import DynamicCache from './dynamic-cache.js'
 import ScriptNode from './script/node.js'
@@ -33,6 +34,7 @@ export default class Wavepot {
     this.onbar = this.onbar.bind(this)
     singleGesture(() => this.start())
     this.createSequencer(localStorage)
+    this.library = Library(this.el, localStorage)
     this.playingNodes = []
     this.prevPlayingNodes = []
     this.mode = 'sequencer'

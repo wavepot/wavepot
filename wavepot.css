@@ -14,6 +14,7 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  font-family: 'ProggyCleanTT';
 }
 
 canvas {
@@ -50,4 +51,45 @@ canvas.cursor-text {
 
 canvas.cursor-none {
   cursor: none;
+}
+
+.lib {
+  image-rendering: pixelated;
+  position: fixed;
+  z-index: 1;
+  width: 170px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  color: #000;
+  border-left: 1px solid #000;
+  background: #fafafa;
+  cursor: default;
+}
+
+.lib .menu {
+  color: #fff;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.lib .menu div {
+  padding: 3px;
+}
+
+.lib .menu div:hover,
+.lib .menu div.active {
+  background: #fafafa;
+  color: #000;
+}
+
+.lib .list div {
+  padding: 3px 10px;
+  font-size: 16px;
+}
+
+.lib .list div:hover {
+  background: #eee;
 }
