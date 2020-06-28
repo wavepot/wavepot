@@ -1,3 +1,4 @@
+import randomId from '../lib/random-id.js'
 import Tile from './tile.js'
 import { Primrose } from 'primrose'
 
@@ -75,8 +76,6 @@ class Editor {
     Primrose.add(env, this.editor)
   }
 }
-
-const randomId = () => (Math.random() * 10e6 | 0).toString(36)
 
 export default class ScriptTile extends Tile {
   constructor (grid, pos, length, instanceOrValue) {

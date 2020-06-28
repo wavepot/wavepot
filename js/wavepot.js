@@ -1,3 +1,5 @@
+import debounce from './lib/debounce.js'
+import dateId from './lib/date-id.js'
 import Sequencer from './sequencer/sequencer.js'
 import Library from './library.js'
 import Clock from './clock.js'
@@ -32,9 +34,12 @@ export default class Wavepot {
     this.nodes = new Map
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
+    this.storage = localStorage
+    this.history = this.storage.history ? this.storage.history.split(',') : []
     singleGesture(() => this.start())
-    this.library = Library(this.el, localStorage)
-    this.createSequencer(localStorage)
+    this.library = Library(this.el, this.storage)
+    this.library.setList('hist', this.history)
+    this.createSequencer(this.storage)
     this.playingNodes = []
     this.prevPlayingNodes = []
     this.mode = 'sequencer'
@@ -43,7 +48,7 @@ export default class Wavepot {
   createSequencer (storage) {
     this.sequencer = Sequencer(this.el, storage)
     this.sequencer.addEventListener('export', ({ detail: fullState }) => {
-      const filename = `wavepot-${new Date().toJSON().split('.')[0].replace(/[^0-9]/g, '-')}.json`
+      const filename = dateId('wavepot') + '.json'
       const file = new File([fullState], filename, { type: 'application/json' })
       const a = document.createElement('a')
       a.href = URL.createObjectURL(file)
@@ -61,7 +66,7 @@ export default class Wavepot {
         reader.onload = e => {
           const fullState = JSON.parse(e.target.result)
           for (const [key, value] of Object.entries(fullState)) {
-            localStorage.setItem(key, value)
+            this.storage.setItem(key, value)
           }
           // const proxyStorage = {
           //   getItem (key) {
@@ -72,7 +77,7 @@ export default class Wavepot {
           //   }
           // }
           this.sequencer.destroy()
-          this.createSequencer(localStorage)
+          this.createSequencer(this.storage)
         }
       }
       input.click()
@@ -89,11 +94,11 @@ export default class Wavepot {
     this.sequencer.addEventListener('save', ({ detail: tile }) => {
       this.updateNode(tile)
     })
-    this.sequencer.addEventListener('change', ({ detail: tile }) => {
+    this.sequencer.addEventListener('change', debounce(350, ({ detail: tile }) => {
       if (this.mode === 'live') {
         this.updateNode(tile)
       }
-    })
+    }))
     this.sequencer.addEventListener('play', () => {
       const { grid } = this.sequencer
       this.start()
@@ -116,7 +121,7 @@ export default class Wavepot {
       await Promise.all([...this.sequencer.editors.values()].map(instance => this.saveEditor(instance.editor)))
       console.log('cached editors complete')
     })
-    this.library.setProject([...this.sequencer.editors.keys()])
+    this.library.setList('proj', [...this.sequencer.editors.keys()])
     this.library.draw()
   }
 
@@ -189,6 +194,7 @@ export default class Wavepot {
   }
 
   async updateNode (tile) {
+    this.addHistory(tile)
     const filename = await this.saveEditor(tile.instance.editor)
     const methods = await readTracks(filename)
     if (!methods.default) return
@@ -206,6 +212,16 @@ export default class Wavepot {
     this.nodes.set(tile, node)
 
     return node
+  }
+
+  addHistory (tile) {
+    const code = tile.instance.editor.value
+    const filename = readFilenameFromCode(code) || tile.id
+    const name = dateId(filename)
+    this.storage.setItem(name, code)
+    this.history.push(name)
+    this.storage.setItem('history', this.history.join())
+    this.library.setList('hist', this.history)
   }
 
   async saveEditor (editor) {

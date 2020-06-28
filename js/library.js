@@ -18,10 +18,8 @@ export default (el, storage) => {
   lib.el = document.createElement('div')
   lib.el.className = 'lib'
 
-  lib.list = {}
-
   const menuItems = ['proj', 'hist', 'favs']
-  const menuActive = 'proj'
+  let menuActive = storage.getItem('menuActive') ?? 'proj'
 
   const starred = ['313yo', '3s0sa', '1xuc8', '1bhjr']
 
@@ -33,17 +31,21 @@ export default (el, storage) => {
       const el = document.createElement('div')
       el.className = name
       el.textContent = name
+      el.onclick = e => {
+        menuActive = name
+        storage.setItem('menuActive', menuActive)
+        draw()
+      }
       menu.appendChild(el)
     })
 
     return menu
   }
 
-  const createList = items => {
-    const list = document.createElement('div')
-    list.className = 'list'
+  const views = {}
 
-    items = items
+  views.proj = views.favs = items =>
+    items
       .map(item => ({
         el: document.createElement('div'),
         name: item,
@@ -55,7 +57,21 @@ export default (el, storage) => {
       }))
       .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0)
 
-    items.forEach(item => {
+  views.hist = items =>
+    items
+      .map(item => ({
+        el: document.createElement('div'),
+        name: item,
+        title: item.split('_')[0],
+        date: item.split('_')[1]
+      }))
+      .sort((b, a) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0)
+
+  const createList = (name, items = []) => {
+    const list = document.createElement('div')
+    list.className = 'list'
+
+    views[name]?.(items).forEach(item => {
       item.el.textContent = item.title
       list.appendChild(item.el)
     })
@@ -63,16 +79,20 @@ export default (el, storage) => {
     return list
   }
 
-  const setProject = lib.setProject = items => {
-    lib.list.project = createList(items)
+  const setList = lib.setList = (name, items) => {
+    lib.list[name] = createList(name, items)
+    if (name === menuActive) draw()
   }
 
   const draw = lib.draw = () => {
     lib.el.innerHTML = ''
     lib.el.appendChild(createMenu())
-    lib.el.appendChild(lib.list.project)
+    lib.el.appendChild(lib.list[menuActive])
+    lib.el.querySelector('.menu .active')?.classList.remove('active')
     lib.el.querySelector(`.${menuActive}`).classList.add('active')
   }
+
+  lib.list = { proj: createList(), hist: createList(), favs: createList() }
 
   lib.el.addEventListener('mousedown', e => {
     e.stopPropagation()
