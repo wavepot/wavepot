@@ -415,6 +415,16 @@ export default (el, storage) => {
       updateCursorMode('cursor-none')
     }
 
+    if (keys.Tab) {
+      if (!state.focus) {
+        e.preventDefault()
+        e.stopPropagation()
+        grid.updatePlaybackRange()
+        grid.draw()
+        return
+      }
+    }
+
     if (keys.Control) {
       if (keys.l) {
         e.preventDefault()

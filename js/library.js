@@ -18,8 +18,10 @@ export default (el, storage) => {
   lib.el = document.createElement('div')
   lib.el.className = 'lib'
 
-  const menuItems = ['view', 'hist', 'favs']
-  const menuActive = 'favs'
+  lib.list = {}
+
+  const menuItems = ['proj', 'hist', 'favs']
+  const menuActive = 'proj'
 
   const starred = ['313yo', '3s0sa', '1xuc8', '1bhjr']
 
@@ -47,18 +49,32 @@ export default (el, storage) => {
         name: item,
         code: storage.getItem(item)
       }))
+      .map(item => ({
+        title: readFilenameFromCode(item.code) || item.name,
+        ...item
+      }))
+      .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0)
 
     items.forEach(item => {
-      item.el.textContent = readFilenameFromCode(item.code)
+      item.el.textContent = item.title
       list.appendChild(item.el)
     })
 
     return list
   }
 
-  lib.el.appendChild(createMenu())
-  lib.el.appendChild(createList(starred))
-  lib.el.querySelector(`.${menuActive}`).classList.add('active')
+  const setProject = lib.setProject = items => {
+    lib.list.project = createList(items)
+  }
+
+  const draw = lib.draw = () => {
+    lib.el.innerHTML = ''
+    lib.el.appendChild(createMenu())
+    lib.el.appendChild(lib.list.project)
+    lib.el.querySelector(`.${menuActive}`).classList.add('active')
+  }
 
   el.appendChild(lib.el)
+
+  return lib
 }

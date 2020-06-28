@@ -33,8 +33,8 @@ export default class Wavepot {
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
     singleGesture(() => this.start())
-    this.createSequencer(localStorage)
     this.library = Library(this.el, localStorage)
+    this.createSequencer(localStorage)
     this.playingNodes = []
     this.prevPlayingNodes = []
     this.mode = 'sequencer'
@@ -116,6 +116,8 @@ export default class Wavepot {
       await Promise.all([...this.sequencer.editors.values()].map(instance => this.saveEditor(instance.editor)))
       console.log('cached editors complete')
     })
+    this.library.setProject([...this.sequencer.editors.keys()])
+    this.library.draw()
   }
 
   onbar () {

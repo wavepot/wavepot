@@ -86,8 +86,17 @@ canvas.cursor-none {
 }
 
 .lib .list div {
+  position: relative;
   padding: 3px 10px;
   font-size: 16px;
+}
+
+.lib .list div:after {
+  position: absolute;
+  right: 10px;
+  top: -1px;
+  content: '○';
+  /*content: '●';*/
 }
 
 .lib .list div:hover {

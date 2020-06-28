@@ -1282,14 +1282,14 @@ export class Primrose extends EventTarget {
                     const sign = Math.sign(evt.deltaY)
                     const dy = sign * Math.max(1, Math.round(Math.abs(evt.deltaY) * wheelScrollSpeed / scrollScale));
                     if (!this.scrollBy(0, dy) || focused) {
-                        evt.preventDefault();
+                        // evt.preventDefault();
                     }
                 }
                 else if (!evt.ctrlKey
                     && !evt.altKey
                     && !evt.metaKey) {
-                    evt.preventDefault();
-                    this.fontSize += -evt.deltaY / scrollScale;
+                    // evt.preventDefault();
+                    // this.fontSize += -evt.deltaY / scrollScale;
                 }
                 render();
             }
@@ -2060,21 +2060,21 @@ Object.defineProperties(Primrose, {
 
 Object.freeze(Primrose);
 
-requestAnimationFrame(function update() {
-    requestAnimationFrame(update);
-    for (let i = controls.length - 1; i >= 0; --i) {
-        const control = controls[i];
-        if (control.isInDocument) {
-            if (elements.has(control.element)) {
-                control.resize();
-            }
-            else {
-                controls.splice(i, 1);
-                publicControls = Object.freeze(controls.slice());
-            }
-        }
-    }
-});
+// requestAnimationFrame(function update() {
+//     requestAnimationFrame(update);
+//     for (let i = controls.length - 1; i >= 0; --i) {
+//         const control = controls[i];
+//         if (control.isInDocument) {
+//             if (elements.has(control.element)) {
+//                 control.resize();
+//             }
+//             else {
+//                 controls.splice(i, 1);
+//                 publicControls = Object.freeze(controls.slice());
+//             }
+//         }
+//     }
+// });
 
 const withCurrentControl = (name) => {
     const evtName = name.toLocaleLowerCase(),
@@ -2099,4 +2099,4 @@ window.addEventListener("wheel", (evt) => {
     if (control !== null) {
         control.readWheelEvent(evt);
     }
-}, { passive: false });
+}, { passive: true });
