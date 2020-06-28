@@ -54,9 +54,12 @@ canvas.cursor-none {
 }
 
 .lib {
+  box-sizing: border-box;
   image-rendering: pixelated;
   position: fixed;
   z-index: 1;
+  display: flex;
+  flex-flow: column nowrap;
   width: 170px;
   top: 0;
   right: 0;
@@ -76,7 +79,7 @@ canvas.cursor-none {
 }
 
 .lib .menu div {
-  padding: 3px;
+  padding: 2px;
 }
 
 .lib .menu div:hover,
@@ -85,9 +88,16 @@ canvas.cursor-none {
   color: #000;
 }
 
+.lib .list {
+  box-sizing: border-box;
+  overflow-y: auto;
+  height: 100%;
+  padding-top: 3px;
+}
+
 .lib .list div {
   position: relative;
-  padding: 3px 10px;
+  padding: 2px 10px;
   font-size: 16px;
 }
 
@@ -101,4 +111,16 @@ canvas.cursor-none {
 
 .lib .list div:hover {
   background: #eee;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #999;
 }

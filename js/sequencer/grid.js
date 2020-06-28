@@ -9,6 +9,7 @@ export default class Grid {
     this.squares = new Map
     this.tileFactory = tileFactory
     this.canvas = document.createElement('canvas')
+    this.canvas.style.position = 'fixed'
     this.ctx = this.canvas.getContext('2d')
     this.screen = { width: 1000, height: 1000 } // in px
     this.size = { width: 0, height: 0 } // size in squares
@@ -362,7 +363,7 @@ export default class Grid {
   }
 
   resize(initial = false) {
-    this.screen.width = this.canvas.width = document.documentElement.clientWidth
+    this.screen.width = this.canvas.width = document.documentElement.clientWidth - 170
     this.screen.height = this.canvas.height = document.documentElement.clientHeight
     if (!initial) this.setScale(this.scale)
   }

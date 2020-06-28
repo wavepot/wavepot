@@ -74,6 +74,14 @@ export default (el, storage) => {
     lib.el.querySelector(`.${menuActive}`).classList.add('active')
   }
 
+  lib.el.addEventListener('mousedown', e => {
+    e.stopPropagation()
+  })
+
+  lib.el.addEventListener('wheel', e => {
+    e.stopPropagation()
+  }, { passive: true })
+
   el.appendChild(lib.el)
 
   return lib
