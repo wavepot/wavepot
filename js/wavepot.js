@@ -92,10 +92,12 @@ export default class Wavepot {
       console.log('set mode', this.mode)
     })
     this.sequencer.addEventListener('save', ({ detail: tile }) => {
+      this.addHistory(tile)
       this.updateNode(tile)
     })
     this.sequencer.addEventListener('change', debounce(350, ({ detail: tile }) => {
       if (this.mode === 'live') {
+        this.addHistory(tile)
         this.updateNode(tile)
       }
     }))
@@ -194,7 +196,6 @@ export default class Wavepot {
   }
 
   async updateNode (tile) {
-    this.addHistory(tile)
     const filename = await this.saveEditor(tile.instance.editor)
     const methods = await readTracks(filename)
     if (!methods.default) return
