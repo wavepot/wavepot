@@ -54,6 +54,7 @@ canvas.cursor-none {
 }
 
 .lib {
+  user-select: none;
   box-sizing: border-box;
   image-rendering: pixelated;
   position: fixed;
@@ -101,16 +102,32 @@ canvas.cursor-none {
   font-size: 16px;
 }
 
-.lib .list div:after {
-  position: absolute;
-  right: 10px;
-  top: -1px;
-  content: '○';
-  /*content: '●';*/
-}
-
 .lib .list div:hover {
   background: #eee;
+}
+
+.lib input[type='checkbox'] {
+  position: absolute;
+  right: 0;
+  top: -1px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  width: 13px;
+  height: 13px;
+}
+
+
+.lib input[type='checkbox']:after {
+  position: absolute;
+  left: 2px;
+  content: '○';
+  line-height: 10px;
+}
+
+.lib input[type='checkbox']:checked:after {
+  content: '●';
 }
 
 ::-webkit-scrollbar {

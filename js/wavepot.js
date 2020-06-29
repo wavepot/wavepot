@@ -216,11 +216,12 @@ export default class Wavepot {
   }
 
   addHistory (tile) {
+    const version = Number(this.storage.getItem(tile.id + '.v') || 1) + 1
     const code = tile.instance.editor.value
-    const filename = readFilenameFromCode(code) || tile.id
-    const name = dateId(filename)
+    const name = tile.id + '.' + version
+    this.storage.setItem(tile.id + '.v', version)
     this.storage.setItem(name, code)
-    this.history.push(name)
+    this.history.unshift(name)
     this.storage.setItem('history', this.history.join())
     this.library.setList('hist', this.history)
   }

@@ -20,6 +20,7 @@ export default (el, storage) => {
 
   const menuItems = ['proj', 'hist', 'favs']
   let menuActive = storage.getItem('menuActive') ?? 'proj'
+  lib.items = { proj: [], hist: [], favs: [] }
 
   const starred = ['313yo', '3s0sa', '1xuc8', '1bhjr']
 
@@ -44,35 +45,78 @@ export default (el, storage) => {
 
   const views = {}
 
-  views.proj = views.favs = items =>
+  views.proj = items =>
     items
       .map(item => ({
         el: document.createElement('div'),
+        id: item,
         name: item,
         code: storage.getItem(item)
       }))
       .map(item => ({
-        title: readFilenameFromCode(item.code) || item.name,
-        ...item
+        ...item,
+        title: readFilenameFromCode(item.code) || item.name
       }))
+      .map(item => {
+        item.el.textContent = item.title
+        item.el.title = item.code
+        return item
+      })
       .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0)
+
+  const favs = (storage.getItem('favs')?.split(',') ?? []).filter(Boolean)
 
   views.hist = items =>
     items
       .map(item => ({
         el: document.createElement('div'),
-        name: item,
-        title: item.split('_')[0],
-        date: item.split('_')[1]
+        id: item,
+        name: item.split('.')[0],
+        title: item,
+        version: item.split('.')[1],
+        code: storage.getItem(item)
       }))
-      .sort((b, a) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0)
+      .map(item => ({
+        ...item,
+        title: (readFilenameFromCode(item.code) || item.name) + ' ' + (item.version ?? 0)
+      }))
+      .map(item => {
+        const addToFav = document.createElement('input')
+        addToFav.type = 'checkbox'
+        addToFav.checked = favs.includes(item.id)
+        addToFav.onchange = e => {
+          const index = favs.indexOf(item.id)
+          if (e.target.checked) {
+            if (index === -1) {
+              favs.push(item.id)
+              storage.setItem('favs', favs.join())
+            }
+          } else {
+            if (index > -1) {
+              favs.splice(index, 1)
+              storage.setItem('favs', favs.join())
+            }
+          }
+          if (menuActive !== 'favs') {
+            lib.updateList('favs')
+          } else {
+            lib.updateList('hist')
+          }
+        }
+        item.el.textContent = item.title
+        item.el.title = item.code
+        item.el.appendChild(addToFav)
+        return item
+      })
+
+  views.favs = items => views.hist(items)
+    .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0)
 
   const createList = (name, items = []) => {
     const list = document.createElement('div')
     list.className = 'list'
-
+    lib.items[name] = items
     views[name]?.(items).forEach(item => {
-      item.el.textContent = item.title
       list.appendChild(item.el)
     })
 
@@ -84,6 +128,10 @@ export default (el, storage) => {
     if (name === menuActive) draw()
   }
 
+  const updateList = lib.updateList = name => {
+    lib.setList(name, lib.items[name])
+  }
+
   const draw = lib.draw = () => {
     lib.el.innerHTML = ''
     lib.el.appendChild(createMenu())
@@ -92,7 +140,7 @@ export default (el, storage) => {
     lib.el.querySelector(`.${menuActive}`).classList.add('active')
   }
 
-  lib.list = { proj: createList(), hist: createList(), favs: createList() }
+  lib.list = { proj: createList(), hist: createList(), favs: createList('favs', favs) }
 
   lib.el.addEventListener('mousedown', e => {
     e.stopPropagation()
