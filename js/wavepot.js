@@ -35,9 +35,9 @@ export default class Wavepot {
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
     this.storage = localStorage
-    this.history = this.storage.history ? this.storage.history.split(',') : []
+    this.history = this.storage.getItem('hist') ? this.storage.getItem('hist').split(',') : []
     singleGesture(() => this.start())
-    this.library = Library(this.el, this.storage)
+    this.library = Library(this, this.el, this.storage)
     this.library.setList('hist', this.history)
     this.createSequencer(this.storage)
     this.playingNodes = []
@@ -216,13 +216,17 @@ export default class Wavepot {
   }
 
   addHistory (tile) {
-    const version = Number(this.storage.getItem(tile.id + '.v') || 1) + 1
     const code = tile.instance.editor.value
-    const name = tile.id + '.' + version
-    this.storage.setItem(tile.id + '.v', version)
+    const filename = readFilenameFromCode(code)
+    let version = Number(this.storage.getItem(filename + '.v') || 0)
+    const prev = filename + '.' + version
+    if (this.storage.getItem(prev) === code) return
+    version++
+    const name = filename + '.' + version
+    this.storage.setItem(filename + '.v', version)
     this.storage.setItem(name, code)
     this.history.unshift(name)
-    this.storage.setItem('history', this.history.join())
+    this.storage.setItem('hist', this.history.join())
     this.library.setList('hist', this.history)
   }
 

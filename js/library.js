@@ -10,7 +10,7 @@ const readFilenameFromCode = code => {
   }
 }
 
-export default (el, storage) => {
+export default (app, el, storage) => {
   const lib = new EventTarget
 
   if (window.DEBUG) window.lib = lib
@@ -58,6 +58,7 @@ export default (el, storage) => {
         title: readFilenameFromCode(item.code) || item.name
       }))
       .map(item => {
+        item.el.dataset.id = item.id
         item.el.textContent = item.title
         item.el.title = item.code
         return item
@@ -144,6 +145,12 @@ export default (el, storage) => {
 
   lib.el.addEventListener('mousedown', e => {
     e.stopPropagation()
+    const tile = app.sequencer.grid.tiles.find(([pos, tile]) => tile.id === e.target.dataset.id)?.[1]
+    if (tile) {
+      app.sequencer.grid.setShift({ x: -tile.pos.x, y: -tile.pos.y })
+      app.sequencer.grid.setScale(7)
+      app.sequencer.grid.draw()
+    }
   })
 
   lib.el.addEventListener('wheel', e => {
