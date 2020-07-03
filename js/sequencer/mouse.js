@@ -1,10 +1,14 @@
+const offsetOf = v => v >= 0 ? v - Math.floor(v) : 1 - offsetOf(-v)
+
 export default ({ grid }) => ({
   which: 0,
   down: false,
   prev: { x: 0, y: 0, d: 0 }, // old float position in px
   px: { x: 0, y: 0, d: 0 }, // float position in px
   pos: { x: 0, y: 0 }, // float position in squares
+  offset: { x: 0, y: 0 }, // offset position in px
   square: { x: 0, y: 0 }, // int position (actual square)
+  edge: { x: false, y: false },
   parseEvent (e) {
     this.which = e.which
     let x, y, d = 0
@@ -42,5 +46,12 @@ export default ({ grid }) => ({
       x: Math.floor(this.pos.x),
       y: Math.floor(this.pos.y)
     }
+
+    this.offset.x = (this.pos.x - this.square.x) * grid.zoom
+    this.offset.y = (this.pos.y - this.square.y) * grid.zoom
+
+    this.edge.x = this.offset.x < 5 || this.offset.x >= grid.zoom - 5
+    this.edge.y = this.offset.y < 5 || this.offset.y >= grid.zoom - 5
   }
 })
+

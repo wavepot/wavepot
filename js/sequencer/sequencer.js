@@ -89,19 +89,25 @@ export default (el, storage) => {
       const { left, top, right, bottom } = grid.playbackRange
       const ry = Math.round(mouse.pos.y)
       const rx = Math.round(mouse.pos.x)
-      if ((rx === left && ry === top) || (rx === right + 1 && ry === bottom + 1)) {
+      if (
+        ((rx === left && ry === top) || (rx === right + 1 && ry === bottom + 1)) &&
+        (mouse.edge.x && mouse.edge.y)
+      ) {
         grid.canvas.className = 'cursor-nwse-resize'
         return
       }
-      if ((rx === right + 1 && ry === top) || (rx === left && ry === bottom + 1)) {
+      if (
+        ((rx === right + 1 && ry === top) || (rx === left && ry === bottom + 1)) &&
+        (mouse.edge.x && mouse.edge.y)
+      ) {
         grid.canvas.className = 'cursor-nesw-resize'
         return
       }
-      if (rx === left || rx === right + 1) {
+      if ((rx === left || rx === right + 1) && mouse.edge.x) {
         grid.canvas.className = 'cursor-col-resize'
         return
       }
-      if (ry === top || ry === bottom + 1) {
+      if ((ry === top || ry === bottom + 1) && mouse.edge.y) {
         grid.canvas.className = 'cursor-row-resize'
         return
       }
