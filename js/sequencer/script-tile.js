@@ -142,6 +142,8 @@ export default class ScriptTile extends Tile {
     if (this.grid.zoom < 14) return
 
     const drawHash = [
+      this.pos.x,
+      this.pos.y,
       this.grid.zoom,
       this.grid.shift.x,
       this.grid.shift.y,
