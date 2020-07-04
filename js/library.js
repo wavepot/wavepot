@@ -181,6 +181,7 @@ export default (app, el, storage) => {
       app.sequencer.grid.setScale(7)
       app.sequencer.grid.draw()
       tile.focus()
+      app.sequencer.state.focus = tile
     }
   })
 
