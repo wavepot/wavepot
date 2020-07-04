@@ -6,22 +6,11 @@ import Clock from './clock.js'
 import DynamicCache from './dynamic-cache.js'
 import ScriptNode from './script/node.js'
 import singleGesture from './lib/single-gesture.js'
+import readFilenameFromCode from './lib/read-filename-from-code.js'
 import readTracks from './read-tracks.js'
 
 const DEFAULT_OPTIONS = {
   bpm: 120
-}
-
-const readFilenameFromCode = code => {
-  code = code.trim()
-  if (code[0] === '`') {
-    const nextBackquoteIndex = code.indexOf('`', 1)
-    const filename = code
-      .slice(1, nextBackquoteIndex)
-      .toLowerCase()
-      .replace(/[^a-z0-9-_./]{1,}/gm, '-')
-    return filename
-  }
 }
 
 DynamicCache.install()
@@ -123,7 +112,7 @@ export default class Wavepot {
       await Promise.all([...this.sequencer.editors.values()].map(instance => this.saveEditor(instance.editor)))
       console.log('cached editors complete')
     })
-    this.library.setList('proj', [...this.sequencer.editors.keys()])
+    this.library.setList('curr', [...this.sequencer.editors.keys()])
     this.library.draw()
   }
 
@@ -198,6 +187,7 @@ export default class Wavepot {
   async updateNode (tile) {
     const filename = await this.saveEditor(tile.instance.editor)
     const methods = await readTracks(filename)
+    this.library.setList('curr', [...this.sequencer.editors.keys()])
     if (!methods.default) return
 
     const node = new ScriptNode(
@@ -223,7 +213,7 @@ export default class Wavepot {
     if (this.storage.getItem(prev) === code) return
     version++
     const name = filename + '.' + version
-    this.storage.setItem(filename + '.v', version)
+    this.storage.setItem(filename + '.v', version.toString())
     this.storage.setItem(name, code)
     this.history.unshift(name)
     this.storage.setItem('hist', this.history.join())
@@ -236,127 +226,3 @@ export default class Wavepot {
     return await this.cache.put(filename, code)
   }
 }
-//   getLoopBuffer (opts) {
-//     const loopBufferPool = this.getLoopBufferPool(opts)
-//     const loopBuffer = loopBufferPool.get()
-//     loopBuffer.onended = () => loopBufferPool.release(loopBuffer)
-//     return loopBuffer
-//   }
-
-//   getLoopBufferPool ({ numberOfChannels, numberOfBars, sampleRate }) {
-//     const key = [numberOfChannels, numberOfBars, sampleRate].join()
-//     if (!(key in this.pools)) {
-//       this.pools[key] = new Pool(
-//         () => new LoopBuffer({
-//           audioContext: this.audioContext,
-//           numberOfChannels,
-//           numberOfBars,
-//           sampleRate,
-//           barLength: this.clock.lengths.bar
-//         })
-//       )
-//     }
-//     return this.pools[key]
-//   }
-
-//   async play (script, filename = 'dsp.js', syncType = 'bar') {
-//     filename = await this.cache.put(filename, script)
-
-//     const song = this.songs[filename] = this.songs[filename] ?? new Song(filename)
-
-//     const tracks = await readTracks(filename)
-
-//     for (const [name, track] of song.tracks) {
-//       if (!tracks.has(name)) {
-//         song.stop(track, syncType)
-//       }
-//     }
-//     for (const [name, track] of tracks) {
-//       if (song.tracks.has(name)) {
-//         song.update(track, syncType)
-//         // on update, don't discard last playing node until
-//         // we have the new setup+render done, only at last moment
-//         // double buffer on loopscriptnode?
-//       } else {
-//         song.add(track, syncType)
-//       }
-//     }
-//   }
-
-//   playTrack (track) {
-//     if (track.worker) {
-//       track.worker.terminate()
-//     }
-
-//     const worker = track.worker = new Worker('./dsp-worker.js', { type: 'module' })
-
-//     worker.onmessage = ({ data }) => {
-//       switch (data.type) {
-//         case 'callback':
-//           // TODO
-//           break
-//         case 'setup':
-//           Object.assign(track.context, data.context)
-//           this.scheduler()
-//           break
-//         case 'render':
-//           Object.assign(track.context, data.context)
-//           this.scheduler()
-//           break
-//         default:
-//           throw new Error('Unsupported message type: ' + data.type)
-//       }
-//     }
-
-//     worker.onerror = error => {
-//       track.context.meta.error = error
-//       console.error(error.message, track)
-//     }
-
-//     worker.postMessage({
-//       type: 'setup',
-//       context: track.context
-//     })
-//   }
-
-//   stopTrack (track) {
-//     track.audio.source.stop(this.times.sync)
-//     track.audio.reset()
-//     this.loopAudioBuffersPool.release(track.audio)
-//   }
-
-//   close () {
-//     try { this.audioContext.close() } catch {}
-//   }
-// }
-
-// class Song {
-//   constructor (filename) {
-//     this.filename = filename
-//     this.tracks = new Map
-//   }
-
-//   update (track, syncType) {
-//     Object.assign(this.tracks.get(track.name), track)
-//   }
-
-//   stop (track, syncType) {
-//     track.stop(this.clock.s[syncType])
-//   }
-
-//   add (track, syncType) {
-//     this.tracks.set(track.name, new Track(track))
-//   }
-
-//   createTrack (filename, track) {
-//     return new Track(filename, track)
-//   }
-// }
-
-// class Track {
-//   constructor (filename, track) {
-//     this.filename = filename
-//     Object.assign(this, track)
-//     this.context = new Context()
-//   }
-// }

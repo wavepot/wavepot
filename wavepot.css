@@ -73,14 +73,16 @@ canvas.cursor-none {
 
 .lib .menu {
   color: #fff;
+  border-top: 2px solid #000;
   background: #000;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
 }
 
 .lib .menu div {
   padding: 2px;
+  margin: 0 2px;
 }
 
 .lib .menu div:hover,
@@ -100,6 +102,12 @@ canvas.cursor-none {
   position: relative;
   padding: 2px 10px;
   font-size: 16px;
+}
+
+.lib .list div.ruler {
+  pointer-events: none;
+  margin: 1px 0px;
+  border-bottom: 1px solid #000;
 }
 
 .lib .list div:hover {

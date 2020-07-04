@@ -1,14 +1,4 @@
-const readFilenameFromCode = code => {
-  code = code.trim()
-  if (code[0] === '`') {
-    const nextBackquoteIndex = code.indexOf('`', 1)
-    const filename = code
-      .slice(1, nextBackquoteIndex)
-      .toLowerCase()
-      .replace(/[^a-z0-9-_./]{1,}/gm, '-')
-    return filename
-  }
-}
+import readFilenameFromCode from './lib/read-filename-from-code.js'
 
 export default (app, el, storage) => {
   const lib = new EventTarget
@@ -18,17 +8,31 @@ export default (app, el, storage) => {
   lib.el = document.createElement('div')
   lib.el.className = 'lib'
 
-  const menuItems = ['proj', 'hist', 'favs']
+  const menuItems = ['proj', 'curr', 'hist', 'favs']
   let menuActive = storage.getItem('menuActive') ?? 'proj'
-  lib.items = { proj: [], hist: [], favs: [] }
+  lib.items = {
+    proj: [],
+    curr: [],
+    hist: [],
+    favs: []
+  }
 
-  const starred = ['313yo', '3s0sa', '1xuc8', '1bhjr']
+  const projItems = [
+    'new',
+    'save as',
+    'clone',
+    'import',
+    'export',
+    'share',
+    'persist',
+    '-'
+  ]
 
-  const createMenu = () => {
+  const createMenu = (name, items) => {
     const menu = document.createElement('div')
-    menu.className = 'menu'
+    menu.className = 'menu ' + name
 
-    menuItems.forEach(name => {
+    items.forEach(name => {
       const el = document.createElement('div')
       el.className = name
       el.textContent = name
@@ -46,6 +50,24 @@ export default (app, el, storage) => {
   const views = {}
 
   views.proj = items =>
+    items
+      .map(item => ({
+        el: document.createElement('div'),
+        id: item,
+        name: item,
+        title: item
+      }))
+      .map(item => {
+        if (item.title === '-') {
+          item.el.className = 'ruler'
+        } else {
+          item.el.dataset.id = item.id
+          item.el.textContent = item.title
+        }
+        return item
+      })
+
+  views.curr = items =>
     items
       .map(item => ({
         el: document.createElement('div'),
@@ -115,7 +137,7 @@ export default (app, el, storage) => {
 
   const createList = (name, items = []) => {
     const list = document.createElement('div')
-    list.className = 'list'
+    list.className = 'list ' + name
     lib.items[name] = items
     views[name]?.(items).forEach(item => {
       list.appendChild(item.el)
@@ -134,14 +156,22 @@ export default (app, el, storage) => {
   }
 
   const draw = lib.draw = () => {
-    lib.el.innerHTML = ''
-    lib.el.appendChild(createMenu())
+    lib.el.innerHTML = '<div class="menu">untitled</div>'
+    // lib.el.appendChild(createMenu('port', ['open', 'save', 'new']))
+    // lib.el.appendChild(createMenu('workspaces', spaceItems))
+    // lib.el.appendChild(createList('workspaces', lib.spaces))
+    lib.el.appendChild(createMenu('project', menuItems))
     lib.el.appendChild(lib.list[menuActive])
     lib.el.querySelector('.menu .active')?.classList.remove('active')
     lib.el.querySelector(`.${menuActive}`).classList.add('active')
   }
 
-  lib.list = { proj: createList(), hist: createList(), favs: createList('favs', favs) }
+  lib.list = {
+    proj: createList('proj', projItems),
+    curr: createList(),
+    hist: createList(),
+    favs: createList('favs', favs)
+  }
 
   lib.el.addEventListener('mousedown', e => {
     e.stopPropagation()
