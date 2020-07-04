@@ -180,6 +180,7 @@ export default (app, el, storage) => {
       app.sequencer.grid.setShift({ x: -tile.pos.x, y: -tile.pos.y })
       app.sequencer.grid.setScale(7)
       app.sequencer.grid.draw()
+      tile.focus()
     }
   })
 
