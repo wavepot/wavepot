@@ -11,16 +11,16 @@ export default (el, storage) => {
 
   const editors = app.editors = new Map
   const state = app.state = State()
-  const grid = app.grid = new Grid(app, storage, function (pos, length, id, value) {
+  const grid = app.grid = new Grid(app, storage, async function (pos, length, id, value) {
     if (id) {
       let instance = editors.get(id)
       if (!instance) {
-        const value = storage.getItem(id)
+        const value = await storage.getItem(id)
         const tile = new ScriptTile(this, pos, length, value)
         tile.id = id
         tile.instance.id = id
-        tile.instance.editor.addEventListener('change', () => {
-          storage.setItem(tile.id, tile.instance.editor.value)
+        tile.instance.editor.addEventListener('change', async () => {
+          await storage.setItem(tile.id, tile.instance.editor.value)
           app.dispatchEvent(new CustomEvent('change', { detail: state.focus }))
         })
         editors.set(id, tile.instance)
@@ -39,17 +39,29 @@ export default (el, storage) => {
           : state.brush?.instance
       )
       if (!editors.has(tile.id)) {
-        tile.instance.editor.addEventListener('change', () => {
-          storage.setItem(tile.id, tile.instance.editor.value)
+        tile.instance.editor.addEventListener('change', async () => {
+          await storage.setItem(tile.id, tile.instance.editor.value)
           app.dispatchEvent(new CustomEvent('change', { detail: state.focus }))
         })
         editors.set(tile.id, tile.instance)
-        storage.setItem(tile.id, tile.instance.editor.value)
+        await storage.setItem(tile.id, tile.instance.editor.value)
       }
       return tile
     }
   })
   const mouse = app.mouse = Mouse(app)
+
+  app.toJSON = () => {
+    return {
+      gridState: JSON.stringify(grid),
+      gridTiles: JSON.stringify([...grid.tiles]),
+      ...Object.fromEntries([...editors].map(([id, instance]) => [id, instance.editor.value]))
+    }
+  }
+
+  app.stringify = () => {
+    return JSON.stringify(app, null, 2)
+  }
 
   const fixEvent = e => {
     if (state.focus && 'offsetX' in e) {
@@ -208,7 +220,9 @@ export default (el, storage) => {
 
         mouse.update({ x, y, d })
         if (!grid.hasSquare(mouse.square, state.brush?.length)) {
-          state.brush = grid.addTile(mouse.square, state.brush?.length)
+          (async () => {
+            state.brush = await grid.addTile(mouse.square, state.brush?.length)
+          })()
         }
         return
       }
@@ -312,10 +326,10 @@ export default (el, storage) => {
           return
         }
         // start drawing on long press
-        state.drawingTimeout = setTimeout(() => {
+        state.drawingTimeout = setTimeout(async () => {
           state.drawing = true
           if (!grid.hasSquare(mouse.square, state.brush?.length)) {
-            state.brush = grid.addTile(mouse.square, state.brush?.length)
+            state.brush = await grid.addTile(mouse.square, state.brush?.length)
           }
         }, 500)
       }
@@ -379,7 +393,9 @@ export default (el, storage) => {
           state.focus = null
         } else if (!state.didMove) {
           if (!grid.hasSquare(mouse.square, state.brush?.length)) {
-            state.brush = grid.addTile(mouse.square, state.brush?.length)
+            (async () => {
+              state.brush = await grid.addTile(mouse.square, state.brush?.length)
+            })()
           }
         }
       }
@@ -390,8 +406,10 @@ export default (el, storage) => {
       if (tile) { // if shift is pressed, replace with clone and focus
         state.brush = grid.removeTile(mouse.square)
         if (state.focus) state.focus.blur()
-        state.focus = grid.addTile(mouse.square, state.brush?.length)
-        state.focus.focus()
+        ;(async () => {
+          state.focus = await grid.addTile(mouse.square, state.brush?.length)
+          state.focus.focus()
+        })()
         // TODO: copy also caret/scroll position
       }
     }
@@ -443,12 +461,7 @@ export default (el, storage) => {
         if (state.focus) {
           app.dispatchEvent(new CustomEvent('save', { detail: state.focus }))
         } else {
-          const fullState = JSON.stringify({
-            gridState: JSON.stringify(grid),
-            gridTiles: JSON.stringify([...grid.tiles]),
-            ...Object.fromEntries([...editors].map(([id, instance]) => [id, instance.editor.value]))
-          }, null, 2)
-          app.dispatchEvent(new CustomEvent('export', { detail: fullState }))
+          app.dispatchEvent(new CustomEvent('export', { detail: app.stringify() }))
           keys.Control = false
           keys.s = false
         }
@@ -576,16 +589,16 @@ export default (el, storage) => {
     el.removeChild(grid.canvas)
   }
 
-  grid.load()
-  grid.saveState()
-  grid.saveTiles()
-  grid.draw()
   el.appendChild(grid.canvas)
 
   // currently we initialize in sync, but eventually it will be async
   // so we emit the load event asynchronously for the listeners to
   // have time to initialize
-  setTimeout(() => {
+  setTimeout(async () => {
+    await grid.load()
+    await grid.saveState()
+    await grid.saveTiles()
+    grid.draw()
     app.dispatchEvent(new CustomEvent('load'))
   })
 

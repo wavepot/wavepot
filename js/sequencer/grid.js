@@ -33,14 +33,14 @@ export default class Grid {
     this.resize(true)
   }
 
-  load () {
-    const gridState = JSON.parse(this.storage.getItem('gridState') ?? '{}')
+  async load () {
+    const gridState = JSON.parse((await this.storage.getItem('gridState')) ?? '{}')
     this.setShift(gridState.shift ?? this.shift)
     this.setScale(gridState.scale ?? this.scale)
 
-    const gridTiles = new Map(JSON.parse(this.storage.getItem('gridTiles') ?? '[]'))
+    const gridTiles = new Map(JSON.parse((await this.storage.getItem('gridTiles')) ?? '[]'))
     for (const [hashPos, [length, id]] of gridTiles) {
-      const tile = this.tileFactory(this.hashToPos(hashPos), length, id)
+      const tile = await this.tileFactory(this.hashToPos(hashPos), length, id)
       for (const square of tile.squares) {
         this.squares.set(this.posToHash(square), tile)
       }
@@ -48,11 +48,11 @@ export default class Grid {
   }
 
   saveState () {
-    this.storage.setItem('gridState', JSON.stringify(this))
+    return this.storage.setItem('gridState', JSON.stringify(this))
   }
 
   saveTiles () {
-    this.storage.setItem('gridTiles', JSON.stringify(this.tiles))
+    return this.storage.setItem('gridTiles', JSON.stringify(this.tiles))
   }
 
   get tiles () {
@@ -314,8 +314,8 @@ export default class Grid {
     return this.squares.get(this.posToHash(pos))
   }
 
-  addTile (pos, length = 1) {
-    const tile = this.tileFactory(pos, length)
+  async addTile (pos, length = 1) {
+    const tile = await this.tileFactory(pos, length)
     for (const square of tile.squares) {
       this.squares.set(this.posToHash(square), tile)
     }

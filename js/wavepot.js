@@ -1,6 +1,7 @@
 import debounce from './lib/debounce.js'
 import dateId from './lib/date-id.js'
 import Sequencer from './sequencer/sequencer.js'
+import Storage from './storage.js'
 import Library from './library.js'
 import Clock from './clock.js'
 import DynamicCache from './dynamic-cache.js'
@@ -19,58 +20,72 @@ export default class Wavepot {
   constructor (opts = {}) {
     Object.assign(this, DEFAULT_OPTIONS, opts)
     this.el = opts.el
+    this.storage = new Storage()
     this.cache = new DynamicCache('wavepot', { 'Content-Type': 'application/javascript' })
-    this.nodes = new Map
+    this.nodes = new Map()
     this.clock = new Clock()
     this.onbar = this.onbar.bind(this)
-    this.storage = localStorage
-    this.history = this.storage.getItem('hist') ? this.storage.getItem('hist').split(',') : []
-    singleGesture(() => this.start())
-    this.library = Library(this, this.el, this.storage)
-    this.library.setList('hist', this.history)
-    this.createSequencer(this.storage)
     this.playingNodes = []
     this.prevPlayingNodes = []
     this.mode = 'sequencer'
   }
 
+  async init () {
+    await this.storage.init()
+    const history = await this.storage.getItem('hist')
+    this.history = history?.split(',') ?? []
+    this.library = await Library(this, this.el, this.storage)
+    this.library.setList('hist', this.history)
+    this.library.draw()
+    singleGesture(() => this.start())
+    this.createSequencer(this.storage)
+  }
+
+  async import (fullState) {
+    for (const [key, value] of Object.entries(fullState)) {
+      await this.storage.setItem(key, value)
+    }
+    // const proxyStorage = {
+    //   getItem (key) {
+    //     return fullState[key] ?? localStorage.getItem(key)
+    //   },
+    //   setItem (key, value) {
+    //     return localStorage.setItem(key, value)
+    //   }
+    // }
+    this.sequencer.destroy()
+    this.createSequencer(this.storage)
+  }
+
+  importDialog () {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = e => {
+      const file = e.target.files[0]
+      const reader = new FileReader()
+      reader.readAsText(file, 'utf-8')
+      reader.onload = e => {
+        const fullState = JSON.parse(e.target.result)
+        this.import(fullState)
+      }
+    }
+    input.click()
+  }
+
+  export (fullStateJson) {
+    const filename = dateId('wavepot') + '.json'
+    const file = new File([fullStateJson], filename, { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(file)
+    a.download = filename
+    a.click()
+  }
+
   createSequencer (storage) {
     this.sequencer = Sequencer(this.el, storage)
-    this.sequencer.addEventListener('export', ({ detail: fullState }) => {
-      const filename = dateId('wavepot') + '.json'
-      const file = new File([fullState], filename, { type: 'application/json' })
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(file)
-      a.download = filename
-      a.click()
-    })
-    this.sequencer.addEventListener('import', () => {
-      const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = '.json'
-      input.onchange = e => {
-        const file = e.target.files[0]
-        const reader = new FileReader()
-        reader.readAsText(file, 'utf-8')
-        reader.onload = e => {
-          const fullState = JSON.parse(e.target.result)
-          for (const [key, value] of Object.entries(fullState)) {
-            this.storage.setItem(key, value)
-          }
-          // const proxyStorage = {
-          //   getItem (key) {
-          //     return fullState[key] ?? localStorage.getItem(key)
-          //   },
-          //   setItem (key, value) {
-          //     return localStorage.setItem(key, value)
-          //   }
-          // }
-          this.sequencer.destroy()
-          this.createSequencer(this.storage)
-        }
-      }
-      input.click()
-    })
+    this.sequencer.addEventListener('export', ({ detail: fullStateJson }) => this.export(fullStateJson))
+    this.sequencer.addEventListener('import', () => this.importDialog())
     this.sequencer.addEventListener('live', () => {
       // TODO: just a toggle for now
       if (this.mode === 'sequencer') {
@@ -80,13 +95,13 @@ export default class Wavepot {
       }
       console.log('set mode', this.mode)
     })
-    this.sequencer.addEventListener('save', ({ detail: tile }) => {
-      this.addHistory(tile)
+    this.sequencer.addEventListener('save', async ({ detail: tile }) => {
+      await this.addHistory(tile)
       this.updateNode(tile)
     })
-    this.sequencer.addEventListener('change', debounce(350, ({ detail: tile }) => {
+    this.sequencer.addEventListener('change', debounce(350, async ({ detail: tile }) => {
       if (this.mode === 'live') {
-        this.addHistory(tile)
+        await this.addHistory(tile)
         this.updateNode(tile)
       }
     }))
@@ -111,9 +126,8 @@ export default class Wavepot {
       console.log('project loading...')
       await Promise.all([...this.sequencer.editors.values()].map(instance => this.saveEditor(instance.editor)))
       console.log('cached editors complete')
+      this.library.setList('curr', [...this.sequencer.editors.keys()])
     })
-    this.library.setList('curr', [...this.sequencer.editors.keys()])
-    this.library.draw()
   }
 
   onbar () {
@@ -205,18 +219,18 @@ export default class Wavepot {
     return node
   }
 
-  addHistory (tile) {
+  async addHistory (tile) {
     const code = tile.instance.editor.value
     const filename = readFilenameFromCode(code)
-    let version = Number(this.storage.getItem(filename + '.v') || 0)
+    let version = Number((await this.storage.getItem(filename + '.v')) || 0)
     const prev = filename + '.' + version
-    if (this.storage.getItem(prev) === code) return
+    if ((await this.storage.getItem(prev)) === code) return
     version++
     const name = filename + '.' + version
-    this.storage.setItem(filename + '.v', version.toString())
-    this.storage.setItem(name, code)
+    await this.storage.setItem(filename + '.v', version.toString())
+    await this.storage.setItem(name, code)
     this.history.unshift(name)
-    this.storage.setItem('hist', this.history.join())
+    await this.storage.setItem('hist', this.history.join())
     this.library.setList('hist', this.history)
   }
 

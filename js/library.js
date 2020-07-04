@@ -1,6 +1,6 @@
 import readFilenameFromCode from './lib/read-filename-from-code.js'
 
-export default (app, el, storage) => {
+export default async (app, el, storage) => {
   const lib = new EventTarget
 
   if (window.DEBUG) window.lib = lib
@@ -9,7 +9,7 @@ export default (app, el, storage) => {
   lib.el.className = 'lib'
 
   const menuItems = ['proj', 'curr', 'hist', 'favs']
-  let menuActive = storage.getItem('menuActive') ?? 'proj'
+  let menuActive = (await storage.getItem('menuActive')) ?? 'proj'
   lib.items = {
     proj: [],
     curr: [],
@@ -18,14 +18,14 @@ export default (app, el, storage) => {
   }
 
   const projItems = [
-    'new',
-    'save as',
-    'clone',
-    'import',
-    'export',
-    'share',
-    'persist',
-    '-'
+    ['new', () => {}],
+    ['save as', () => {}],
+    ['clone', () => {}],
+    ['import', () => app.importDialog()],
+    ['export', () => app.export(app.sequencer.stringify())],
+    ['share'],
+    ['persist'],
+    ['-'],
   ]
 
   const createMenu = (name, items) => {
@@ -36,9 +36,9 @@ export default (app, el, storage) => {
       const el = document.createElement('div')
       el.className = name
       el.textContent = name
-      el.onclick = e => {
+      el.onclick = async e => {
         menuActive = name
-        storage.setItem('menuActive', menuActive)
+        await storage.setItem('menuActive', menuActive)
         draw()
       }
       menu.appendChild(el)
@@ -49,11 +49,12 @@ export default (app, el, storage) => {
 
   const views = {}
 
-  views.proj = items =>
+  views.proj = async items =>
     items
-      .map(item => ({
+      .map(([item, fn]) => ({
         el: document.createElement('div'),
         id: item,
+        fn,
         name: item,
         title: item
       }))
@@ -64,17 +65,20 @@ export default (app, el, storage) => {
           item.el.dataset.id = item.id
           item.el.textContent = item.title
         }
+        if (item.fn) {
+          item.el.onclick = item.fn
+        }
         return item
       })
 
-  views.curr = items =>
-    items
-      .map(item => ({
+  views.curr = async items =>
+    (await Promise.all(items
+      .map(async item => ({
         el: document.createElement('div'),
         id: item,
         name: item,
-        code: storage.getItem(item)
-      }))
+        code: await storage.getItem(item)
+      }))))
       .map(item => ({
         ...item,
         title: readFilenameFromCode(item.code) || item.name
@@ -87,18 +91,18 @@ export default (app, el, storage) => {
       })
       .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0)
 
-  const favs = (storage.getItem('favs')?.split(',') ?? []).filter(Boolean)
+  const favs = ((await storage.getItem('favs'))?.split(',') ?? []).filter(Boolean)
 
-  views.hist = items =>
-    items
-      .map(item => ({
+  views.hist = async items =>
+    (await Promise.all(items
+      .map(async item => ({
         el: document.createElement('div'),
         id: item,
         name: item.split('.')[0],
         title: item,
         version: item.split('.')[1],
-        code: storage.getItem(item)
-      }))
+        code: await storage.getItem(item)
+      }))))
       .map(item => ({
         ...item,
         title: (readFilenameFromCode(item.code) || item.name) + ' ' + (item.version ?? 0)
@@ -107,17 +111,17 @@ export default (app, el, storage) => {
         const addToFav = document.createElement('input')
         addToFav.type = 'checkbox'
         addToFav.checked = favs.includes(item.id)
-        addToFav.onchange = e => {
+        addToFav.onchange = async e => {
           const index = favs.indexOf(item.id)
           if (e.target.checked) {
             if (index === -1) {
               favs.push(item.id)
-              storage.setItem('favs', favs.join())
+              await storage.setItem('favs', favs.join())
             }
           } else {
             if (index > -1) {
               favs.splice(index, 1)
-              storage.setItem('favs', favs.join())
+              await storage.setItem('favs', favs.join())
             }
           }
           if (menuActive !== 'favs') {
@@ -132,16 +136,17 @@ export default (app, el, storage) => {
         return item
       })
 
-  views.favs = items => views.hist(items)
+  views.favs = async items => (await views.hist(items))
     .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0)
 
   const createList = (name, items = []) => {
     const list = document.createElement('div')
     list.className = 'list ' + name
     lib.items[name] = items
-    views[name]?.(items).forEach(item => {
+
+    views[name](items).then(items => items.forEach(item => {
       list.appendChild(item.el)
-    })
+    }))
 
     return list
   }
@@ -168,8 +173,8 @@ export default (app, el, storage) => {
 
   lib.list = {
     proj: createList('proj', projItems),
-    curr: createList(),
-    hist: createList(),
+    curr: createList('curr', []),
+    hist: createList('hist', []),
     favs: createList('favs', favs)
   }
 
