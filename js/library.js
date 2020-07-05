@@ -18,7 +18,7 @@ export default async (app, el, storage) => {
   }
 
   const projItems = [
-    // ['new', () => {}],
+    ['new', () => app.import({ gridState: '{}', gridTiles: '[]' })],
     // ['save as', () => {}],
     // ['clone', () => {}],
     ['import', () => app.importDialog()],

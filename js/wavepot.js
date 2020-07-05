@@ -38,9 +38,11 @@ export default class Wavepot {
     if (!this.projectName) {
       await this.setProjectName('untitled-' + randomId())
     }
+    const toDelete = []
     for (const [projectName, json] of Object.entries(this.projects)) {
       const data = JSON.parse(json)
       const tracks = new Set(JSON.parse(data.gridTiles).map(([_, [__, name]]) => name))
+      if (tracks.size === 0) toDelete.push(projectName)
       for (const id of tracks) {
         const code = await this.storage.getItem(id)
         const filename = readFilenameFromCode(code)
@@ -48,6 +50,14 @@ export default class Wavepot {
           await this.cache.put(projectName + '/' + filename, code)
         }
       }
+    }
+    if (toDelete.length > 0) {
+      toDelete.forEach(name => {
+        if (name !== this.projectName) {
+          delete this.projects[name]
+        }
+      })
+      await this.storage.setItem('projects', JSON.stringify(this.projects))
     }
     const history = await this.storage.getItem('hist')
     this.history = history?.split(',') ?? []
@@ -77,7 +87,7 @@ export default class Wavepot {
     this.library?.updateList('proj')
   }
 
-  async import (fullState, projectName, old = false) {
+  async import (fullState, projectName = 'untitled-' + randomId(), old = false) {
     for (const [key, value] of Object.entries(fullState)) {
       await this.storage.setItem(key, value)
     }
