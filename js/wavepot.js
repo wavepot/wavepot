@@ -38,6 +38,17 @@ export default class Wavepot {
     if (!this.projectName) {
       await this.setProjectName('untitled-' + randomId())
     }
+    for (const [projectName, json] of Object.entries(this.projects)) {
+      const data = JSON.parse(json)
+      const tracks = new Set(JSON.parse(data.gridTiles).map(([_, [__, name]]) => name))
+      for (const id of tracks) {
+        const code = await this.storage.getItem(id)
+        const filename = readFilenameFromCode(code)
+        if (filename) {
+          await this.cache.put(projectName + '/' + filename, code)
+        }
+      }
+    }
     const history = await this.storage.getItem('hist')
     this.history = history?.split(',') ?? []
     this.library = await Library(this, this.el, this.storage)
@@ -137,6 +148,7 @@ export default class Wavepot {
           await this.addHistory(tile)
           this.updateNode(tile)
         }
+        this.library.setList('curr', [...this.sequencer.editors.keys()])
       }))
       this.sequencer.addEventListener('play', () => {
         const { grid } = this.sequencer
@@ -289,6 +301,6 @@ export default class Wavepot {
   async saveEditor (editor) {
     const code = editor.value
     const filename = readFilenameFromCode(code)
-    return await this.cache.put(filename, code)
+    return await this.cache.put(this.projectName + '/' + filename, code)
   }
 }
