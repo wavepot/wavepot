@@ -2,8 +2,9 @@ const offsetOf = v => v >= 0 ? v - Math.floor(v) : 1 - offsetOf(-v)
 
 let gridValues = new Set
 
-export default class Grid {
+export default class Grid extends EventTarget {
   constructor ({ state }, storage, tileFactory) {
+    super()
     this.state = state
     this.storage = storage
     this.squares = new Map
@@ -47,12 +48,14 @@ export default class Grid {
     }
   }
 
-  saveState () {
-    return this.storage.setItem('gridState', JSON.stringify(this))
+  async saveState () {
+    await this.storage.setItem('gridState', JSON.stringify(this))
+    this.dispatchEvent(new CustomEvent('change'))
   }
 
-  saveTiles () {
-    return this.storage.setItem('gridTiles', JSON.stringify(this.tiles))
+  async saveTiles () {
+    await this.storage.setItem('gridTiles', JSON.stringify(this.tiles))
+    this.dispatchEvent(new CustomEvent('change'))
   }
 
   get tiles () {

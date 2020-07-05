@@ -18,13 +18,21 @@ export default async (app, el, storage) => {
   }
 
   const projItems = [
-    ['new', () => {}],
-    ['save as', () => {}],
-    ['clone', () => {}],
+    // ['new', () => {}],
+    // ['save as', () => {}],
+    // ['clone', () => {}],
     ['import', () => app.importDialog()],
     ['export', () => app.export(app.sequencer.stringify())],
-    ['share'],
-    ['persist'],
+    // ['share'],
+    // ['persist'],
+    ['-'],
+  ]
+
+  const histItems = [
+    ['erase history', () => {
+      if (!confirm('Are you sure?\n\nIf you click OK, this will erase ALL history (except favs)\nand there is no way to undo!')) return
+      app.clearHistory()
+    }],
     ['-'],
   ]
 
@@ -45,6 +53,28 @@ export default async (app, el, storage) => {
     })
 
     return menu
+  }
+
+  const addToFav = item => {
+    const div = document.createElement('input')
+    div.type = 'checkbox'
+    div.checked = favs.includes(item.id)
+    div.onchange = async e => {
+      const index = favs.indexOf(item.id)
+      if (e.target.checked) {
+        if (index === -1) {
+          favs.push(item.id)
+          await storage.setItem('favs', favs.join())
+        }
+      } else {
+        if (index > -1) {
+          favs.splice(index, 1)
+          await storage.setItem('favs', favs.join())
+        }
+      }
+      ;['favs','curr','hist'].forEach(m => menuActive !== m && lib.updateList(m))
+    }
+    return div
   }
 
   const views = {}
@@ -70,6 +100,21 @@ export default async (app, el, storage) => {
         }
         return item
       })
+      .concat(Object.keys(app.projects)
+        .map(item => ({
+          el: document.createElement('div'),
+          id: item
+        }))
+        .map(item => {
+          item.el.textContent = item.id
+          item.el.onclick = e => {
+            if (item.id === app.projectName) return
+            app.import(JSON.parse(app.projects[item.id]), item.id, true)
+          }
+          return item
+        })
+        .sort((a, b) => a.id > b.id ? 1 : a.id < b.id ? -1 : 0)
+      )
 
   views.curr = async items =>
     (await Promise.all(items
@@ -93,50 +138,48 @@ export default async (app, el, storage) => {
 
   const favs = ((await storage.getItem('favs'))?.split(',') ?? []).filter(Boolean)
 
-  views.hist = async items =>
-    (await Promise.all(items
-      .map(async item => ({
+  views.hist = async (items, actions = histItems) =>
+    actions
+      .map(([item, fn]) => ({
         el: document.createElement('div'),
         id: item,
-        name: item.split('.')[0],
-        title: item,
-        version: item.split('.')[1],
-        code: await storage.getItem(item)
-      }))))
-      .map(item => ({
-        ...item,
-        title: (readFilenameFromCode(item.code) || item.name) + ' ' + (item.version ?? 0)
+        fn,
+        name: item,
+        title: item
       }))
       .map(item => {
-        const addToFav = document.createElement('input')
-        addToFav.type = 'checkbox'
-        addToFav.checked = favs.includes(item.id)
-        addToFav.onchange = async e => {
-          const index = favs.indexOf(item.id)
-          if (e.target.checked) {
-            if (index === -1) {
-              favs.push(item.id)
-              await storage.setItem('favs', favs.join())
-            }
-          } else {
-            if (index > -1) {
-              favs.splice(index, 1)
-              await storage.setItem('favs', favs.join())
-            }
-          }
-          if (menuActive !== 'favs') {
-            lib.updateList('favs')
-          } else {
-            lib.updateList('hist')
-          }
+        if (item.title === '-') {
+          item.el.className = 'ruler'
+        } else {
+          item.el.dataset.id = item.id
+          item.el.textContent = item.title
         }
-        item.el.textContent = item.title
-        item.el.title = item.code
-        item.el.appendChild(addToFav)
+        if (item.fn) {
+          item.el.onclick = item.fn
+        }
         return item
       })
+      .concat((await Promise.all(items
+        .map(async item => ({
+          el: document.createElement('div'),
+          id: item,
+          name: item.split('.')[0],
+          title: item,
+          version: item.split('.')[1],
+          code: await storage.getItem(item)
+        }))))
+        .map(item => ({
+          ...item,
+          title: (readFilenameFromCode(item.code) || item.name) + '.' + (item.version ?? item.id)
+        }))
+        .map(item => {
+          item.el.textContent = item.title
+          item.el.title = item.code
+          item.el.appendChild(addToFav(item))
+          return item
+        }))
 
-  views.favs = async items => (await views.hist(items))
+  views.favs = async items => (await views.hist(items, []))
     .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0)
 
   const createList = (name, items = []) => {
@@ -160,8 +203,28 @@ export default async (app, el, storage) => {
     lib.setList(name, lib.items[name])
   }
 
+  const ProjectName = () => {
+    const div = document.createElement('div')
+    div.className = 'menu project-name'
+    div.contentEditable = 'true'
+    div.textContent = app.projectName
+    div.onkeydown = e => {
+      e.stopPropagation()
+      if (e.which === 13) div.blur()
+    }
+    div.onblur = async () => {
+      if (div.textContent === app.projectName) return
+      div.textContent = await app.setProjectName(div.textContent, true)
+    }
+    div.oninput = e => {
+      e.stopPropagation()
+    }
+    return div
+  }
+
   const draw = lib.draw = () => {
-    lib.el.innerHTML = '<div class="menu">untitled</div>'
+    lib.el.innerHTML = ''
+    lib.el.appendChild(ProjectName())
     // lib.el.appendChild(createMenu('port', ['open', 'save', 'new']))
     // lib.el.appendChild(createMenu('workspaces', spaceItems))
     // lib.el.appendChild(createList('workspaces', lib.spaces))

@@ -12,4 +12,8 @@ export default class Storage {
   async setItem (key, value) {
     return this.storage.setItem(key, value)
   }
+
+  async removeItem (key) {
+    return this.storage.removeItem(key)
+  }
 }

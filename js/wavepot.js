@@ -1,5 +1,6 @@
 import debounce from './lib/debounce.js'
 import dateId from './lib/date-id.js'
+import randomId from './lib/random-id.js'
 import Sequencer from './sequencer/sequencer.js'
 import Storage from './storage.js'
 import Library from './library.js'
@@ -32,6 +33,11 @@ export default class Wavepot {
 
   async init () {
     await this.storage.init()
+    this.projects = JSON.parse((await this.storage.getItem('projects')) || '{}')
+    this.projectName = await this.storage.getItem('projectName')
+    if (!this.projectName) {
+      await this.setProjectName('untitled-' + randomId())
+    }
     const history = await this.storage.getItem('hist')
     this.history = history?.split(',') ?? []
     this.library = await Library(this, this.el, this.storage)
@@ -41,7 +47,26 @@ export default class Wavepot {
     this.createSequencer(this.storage)
   }
 
-  async import (fullState) {
+  async setProjectName (newName, rename = false, old = false) {
+    if (!old) while (newName in this.projects) {
+      newName = prompt('name already exists, specify new name', newName)
+    }
+    if (rename) {
+      delete this.projects[this.projectName]
+    }
+    this.projectName = newName
+    await this.storage.setItem('projectName', this.projectName)
+    await this.save()
+    return newName
+  }
+
+  async save () {
+    this.projects[this.projectName] = this.sequencer.stringify()
+    await this.storage.setItem('projects', JSON.stringify(this.projects))
+    this.library?.updateList('proj')
+  }
+
+  async import (fullState, projectName, old = false) {
     for (const [key, value] of Object.entries(fullState)) {
       await this.storage.setItem(key, value)
     }
@@ -54,7 +79,8 @@ export default class Wavepot {
     //   }
     // }
     this.sequencer.destroy()
-    this.createSequencer(this.storage)
+    await this.createSequencer(this.storage)
+    await this.setProjectName(projectName, false, old)
   }
 
   importDialog () {
@@ -63,18 +89,19 @@ export default class Wavepot {
     input.accept = '.json'
     input.onchange = e => {
       const file = e.target.files[0]
+      const projectName = file.name.split('.json')[0]
       const reader = new FileReader()
       reader.readAsText(file, 'utf-8')
-      reader.onload = e => {
+      reader.onload = async e => {
         const fullState = JSON.parse(e.target.result)
-        this.import(fullState)
+        await this.import(fullState, projectName)
       }
     }
     input.click()
   }
 
   export (fullStateJson) {
-    const filename = dateId('wavepot') + '.json'
+    const filename = dateId(this.projectName) + '.json'
     const file = new File([fullStateJson], filename, { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(file)
@@ -83,50 +110,58 @@ export default class Wavepot {
   }
 
   createSequencer (storage) {
-    this.sequencer = Sequencer(this.el, storage)
-    this.sequencer.addEventListener('export', ({ detail: fullStateJson }) => this.export(fullStateJson))
-    this.sequencer.addEventListener('import', () => this.importDialog())
-    this.sequencer.addEventListener('live', () => {
-      // TODO: just a toggle for now
-      if (this.mode === 'sequencer') {
-        this.mode = 'live'
-      } else {
-        this.mode = 'sequencer'
-      }
-      console.log('set mode', this.mode)
-    })
-    this.sequencer.addEventListener('save', async ({ detail: tile }) => {
-      await this.addHistory(tile)
-      this.updateNode(tile)
-    })
-    this.sequencer.addEventListener('change', debounce(350, async ({ detail: tile }) => {
-      if (this.mode === 'live') {
-        await this.addHistory(tile)
+    return new Promise(resolve => {
+      this.sequencer = Sequencer(this.el, storage)
+      this.sequencer.addEventListener('export', ({ detail: fullStateJson }) => this.export(fullStateJson))
+      this.sequencer.addEventListener('import', () => this.importDialog())
+      this.sequencer.addEventListener('live', () => {
+        // TODO: just a toggle for now
+        if (this.mode === 'sequencer') {
+          this.mode = 'live'
+        } else {
+          this.mode = 'sequencer'
+        }
+        console.log('set mode', this.mode)
+      })
+      this.sequencer.addEventListener('save', async ({ detail: tile }) => {
+        await this.save()
+        await this.addHistory(tile, true)
         this.updateNode(tile)
-      }
-    }))
-    this.sequencer.addEventListener('play', () => {
-      const { grid } = this.sequencer
-      this.start()
-      if (!this.clock.started) {
-        this.clock.start()
-        this.scheduleNextNodes()
-      } else {
+      })
+      this.sequencer.addEventListener('change', debounce(350, async ({ detail: tile }) => {
+        if (tile === 'grid') {
+          await this.save()
+          console.log('saved')
+        } else if (this.mode === 'live') {
+          await this.save()
+          await this.addHistory(tile)
+          this.updateNode(tile)
+        }
+      }))
+      this.sequencer.addEventListener('play', () => {
+        const { grid } = this.sequencer
+        this.start()
+        if (!this.clock.started) {
+          this.clock.start()
+          this.scheduleNextNodes()
+        } else {
+          this.clock.stop()
+          this.prevPlayingNodes.forEach(node => node.stop())
+          this.playingNodes.forEach(node => node.stop())
+        }
+      })
+      this.sequencer.addEventListener('pause', () => {
         this.clock.stop()
         this.prevPlayingNodes.forEach(node => node.stop())
         this.playingNodes.forEach(node => node.stop())
-      }
-    })
-    this.sequencer.addEventListener('pause', () => {
-      this.clock.stop()
-      this.prevPlayingNodes.forEach(node => node.stop())
-      this.playingNodes.forEach(node => node.stop())
-    })
-    this.sequencer.addEventListener('load', async () => {
-      console.log('project loading...')
-      await Promise.all([...this.sequencer.editors.values()].map(instance => this.saveEditor(instance.editor)))
-      console.log('cached editors complete')
-      this.library.setList('curr', [...this.sequencer.editors.keys()])
+      })
+      this.sequencer.addEventListener('load', async () => {
+        console.log('project loading...')
+        await Promise.all([...this.sequencer.editors.values()].map(instance => this.saveEditor(instance.editor)))
+        console.log('cached editors complete')
+        this.library.setList('curr', [...this.sequencer.editors.keys()])
+        resolve()
+      })
     })
   }
 
@@ -219,17 +254,34 @@ export default class Wavepot {
     return node
   }
 
-  async addHistory (tile) {
+  async addHistory (tile, force) {
     const code = tile.instance.editor.value
     const filename = readFilenameFromCode(code)
-    let version = Number((await this.storage.getItem(filename + '.v')) || 0)
-    const prev = filename + '.' + version
-    if ((await this.storage.getItem(prev)) === code) return
-    version++
+    const prev = this.history.find(name => name.split('.')[0] === filename)
+    if ((await this.storage.getItem(prev)) === code) {
+      if (!force || (await this.storage.getItem(this.history[0])) === code) {
+        return
+      }
+    }
+    const version = (prev ? Number(prev.split('.')[1]) : 0) + 1
     const name = filename + '.' + version
-    await this.storage.setItem(filename + '.v', version.toString())
     await this.storage.setItem(name, code)
     this.history.unshift(name)
+    await this.storage.setItem('hist', this.history.join())
+    this.library.setList('hist', this.history)
+  }
+
+  async clearHistory () {
+    const favs = ((await this.storage.getItem('favs'))?.split(',') ?? []).filter(Boolean)
+    const toDelete = []
+    this.history = this.history.filter(name => {
+      const shouldDelete = !favs.includes(name)
+      if (shouldDelete) {
+        toDelete.push(name)
+      }
+      return !shouldDelete
+    })
+    await Promise.all(toDelete.map(name => this.storage.removeItem(name)))
     await this.storage.setItem('hist', this.history.join())
     this.library.setList('hist', this.history)
   }

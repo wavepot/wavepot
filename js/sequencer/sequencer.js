@@ -51,6 +51,8 @@ export default (el, storage) => {
   })
   const mouse = app.mouse = Mouse(app)
 
+  app.grid.addEventListener('change', () => app.dispatchEvent(new CustomEvent('change', { detail: 'grid' })))
+
   app.toJSON = () => {
     return {
       gridState: JSON.stringify(grid),
@@ -547,23 +549,6 @@ export default (el, storage) => {
     setTimeout(() => state.background = false, 300)
   }
 
-  window.addEventListener('blur', handleWindowBlur, { passive: false })
-  window.addEventListener('focus', handleWindowFocus, { passive: false })
-  window.addEventListener('resize', handleWindowResize, { passive: false })
-
-  window.addEventListener('wheel', handleMouseWheel, { passive: false })
-  window.addEventListener('mousedown', handleMouseDown, { passive: false })
-  window.addEventListener('mouseup', handleMouseUp, { passive: false })
-  window.addEventListener('mouseover', handleMouseOver, { passive: false })
-  window.addEventListener('mouseout', handleMouseOut, { passive: false })
-  window.addEventListener('mousemove', handleMouseMove, { passive: false })
-  window.addEventListener('touchmove', handleMouseMove, { passive: false })
-  window.addEventListener('touchstart', handleMouseDown, { passive: false })
-  window.addEventListener('contextmenu', handleContextMenu, { passive: false })
-
-  window.addEventListener('keydown', handleKeyDown, { passive: false })
-  window.addEventListener('keyup', handleKeyUp, { passive: false })
-
   app.highlightColumn = col => {
     state.litColumn = col
     grid.draw()
@@ -599,6 +584,24 @@ export default (el, storage) => {
     await grid.saveState()
     await grid.saveTiles()
     grid.draw()
+
+    window.addEventListener('blur', handleWindowBlur, { passive: false })
+    window.addEventListener('focus', handleWindowFocus, { passive: false })
+    window.addEventListener('resize', handleWindowResize, { passive: false })
+
+    window.addEventListener('wheel', handleMouseWheel, { passive: false })
+    window.addEventListener('mousedown', handleMouseDown, { passive: false })
+    window.addEventListener('mouseup', handleMouseUp, { passive: false })
+    window.addEventListener('mouseover', handleMouseOver, { passive: false })
+    window.addEventListener('mouseout', handleMouseOut, { passive: false })
+    window.addEventListener('mousemove', handleMouseMove, { passive: false })
+    window.addEventListener('touchmove', handleMouseMove, { passive: false })
+    window.addEventListener('touchstart', handleMouseDown, { passive: false })
+    window.addEventListener('contextmenu', handleContextMenu, { passive: false })
+
+    window.addEventListener('keydown', handleKeyDown, { passive: false })
+    window.addEventListener('keyup', handleKeyUp, { passive: false })
+
     app.dispatchEvent(new CustomEvent('load'))
   })
 
