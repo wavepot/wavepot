@@ -9,9 +9,6 @@ export const impulse = async(context) => {
 
 export const dust = async(context, density) => {
   var pulse;
-  var coin;
-  var dens = density ;
-  var probability;
 
   return () => {
     probability = Math.random();
