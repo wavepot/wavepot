@@ -11,8 +11,7 @@ export const dust = async(context, density) => {
   var pulse;
 
   return () => {
-    probability = Math.random();
-    if(probability < dens){
+    if(Math.random() < density){
       pulse = Math.random();
       return pulse;
     }else {
