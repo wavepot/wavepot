@@ -1,7 +1,8 @@
 # merge remote changes
 git submodule update --remote --merge --recursive
 
-# TODO: build
+# build assets
+./assets.sh
 
 # update backend
 cd backend
